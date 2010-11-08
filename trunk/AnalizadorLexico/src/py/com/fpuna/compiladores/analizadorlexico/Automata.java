@@ -13,7 +13,6 @@ import py.com.fpuna.compiladores.analizadorlexico.automata.ListaEstados;
  */
 public class Automata {
     public enum TipoAutomata {
-
         AFN,
         AFD,
         AFDMin

@@ -11,6 +11,10 @@ import py.com.fpuna.compiladores.analizadorlexico.automata.Estado;
  */
 public class Thompson extends Automata {
 
+    public Thompson(String preanalisis, int tipo) {
+        super(preanalisis, tipo);
+    }
+
     public void OR(Thompson param) {
         // Obtenemos las referencias a los finales e iniciales correspondientes
         Estado tFinal = this.getFinales().getEstado(0);
@@ -74,7 +78,7 @@ public class Thompson extends Automata {
         Estado finalState = getFinales().getEstado(0);
         Estado initialParam = param.getInicial();
         Iterator<Enlace> enlacesParam = initialParam.getEnlaces().getIterator();
-        
+
         initialParam.setEstadoinicial(false);
         finalState.setEstadofinal(false);
 
