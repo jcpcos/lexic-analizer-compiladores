@@ -17,7 +17,7 @@ public class Enlace implements Comparable<Enlace> {
         this.destino = destino;
         this.etiqueta = label;
         
-        if (label.compareTo("")==0) {
+        if (label.compareTo("") == 0) {
             this.vacio = true;
         } else {
             this.vacio = false;
