@@ -16,6 +16,8 @@ public class Estado implements Comparable<Estado> {
     public Estado(int id, boolean esInicial, boolean esFinal, boolean visitado) {
         this.id = id;
         this.visitado = visitado;
+        this.fin = esFinal;
+        this.inicial = esInicial;
         this.enlaces = new ListaEnlaces();
     }
 
@@ -172,7 +174,7 @@ public class Estado implements Comparable<Estado> {
         this.enlaces.borrar(e);
     }
 
-    public boolean esEstadoMuerto() {
+    public boolean esIsla() {
         if (isEstadofinal()) {
             return false;
         }
