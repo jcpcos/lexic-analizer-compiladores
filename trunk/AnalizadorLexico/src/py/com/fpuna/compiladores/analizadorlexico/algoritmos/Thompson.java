@@ -15,6 +15,10 @@ public class Thompson extends Automata {
         super(preanalisis, tipo);
     }
 
+    public Thompson() {
+        super();
+    }
+
     public void OR(Thompson param) {
         // Obtenemos las referencias a los finales e iniciales correspondientes
         Estado tFinal = this.getFinales().getEstado(0);

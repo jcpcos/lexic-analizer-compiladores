@@ -19,7 +19,11 @@ public class Lexico {
         this.alphabet = new Alfabeto(alfabeto);
         this.specials = "*+?|()";
     }
-
+    public Lexico(String regex, Alfabeto alfabeto) {
+        this.regex = new StringBuffer(regex);
+        this.alphabet = alfabeto;
+        this.specials = "*+?|()";
+    }
 
     /**
      * Consume la entrada y devuelve el siguiente a procesar. Si no se trata de
