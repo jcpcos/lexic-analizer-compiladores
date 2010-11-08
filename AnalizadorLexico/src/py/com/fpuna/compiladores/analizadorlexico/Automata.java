@@ -23,7 +23,7 @@ public class Automata {
     public int tipoAutomata;
     private String regex;
     private ArrayList<String> alphabet;
-    public static final String EMPTY = "";
+    public static final String EMPTY = " [ empty ] ";
 
     public Automata() {
         listaEstados = new ListaEstados();
