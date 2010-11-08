@@ -12,50 +12,23 @@ import py.com.fpuna.compiladores.exceptions.AutomataException;
  * @author Fernando Mancia ({@link fernandomancia@gmail.com})
  */
 public class ListaEstados extends ArrayList<Estado>{
-
-    /**
-     * Identificador de la Lista de estados
-     */
     private int id; 
     
-    /**
-     * Establecer el identificador de listado
-     * @param id Identificador del conjunto de estados.
-     */
     public void setId(int id) {
         this.id = id;
-    }
-    
-    /**
-     * Obtener el id del conjunto de estados.
-     * @return Identificador del conjunto de estados.
-     */
+    }    
     public int getId() {
         return this.id;
     }
     
-    /**
-     * Insertar un nuevo estado a la lista
-     * @param e Estado a insertar.
-     */
     public void insertar(Estado e) {
         this.add(e);
     }
     
-    /**
-     * Eliminar un estado del conjunto.
-     * @param e Estado a eliminar
-     */
     public void borrar(Estado e) {
         this.remove(this.getEstadoById(e.getId()));
     }
     
-    /**
-     * Obtener un estado de la lista. Por convención, el index de cada estado
-     * será igual a su Id. 
-     * @param index Indice del arraylist donde está almacenado el estado a obtener.
-     * @return El estado almacenado en la posición index.
-     */
     public Estado getEstado(int index){
         return this.get(index);
     }
