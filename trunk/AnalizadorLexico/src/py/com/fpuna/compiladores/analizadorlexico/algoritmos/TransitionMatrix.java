@@ -1,40 +1,18 @@
-/*
- * Dtrans.java
- *
- * Created on 11 de noviembre de 2008, 01:03 PM
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
- */
-
 package py.com.fpuna.compiladores.analizadorlexico.algoritmos;
 
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashMap;
 import py.com.fpuna.compiladores.analizadorlexico.Automata;
 import py.com.fpuna.compiladores.analizadorlexico.Token;
 import py.com.fpuna.compiladores.analizadorlexico.automata.Enlace;
 import py.com.fpuna.compiladores.analizadorlexico.automata.Estado;
 import py.com.fpuna.compiladores.analizadorlexico.automata.ListaEstados;
 
-/**
- * Representa la matriz de transiciones.
- * Está implementada con una hashtable en donde,
- *  La clave es : (ListaEstados ID_LISTA, Token SIMBOLO_ALPHA)
- *  El valor es : (ListaEstados ID_LISTA)
- * 
- * En esta Matriz se representa para todos los estados ("A", "B", "C", etc)
- * a que estado destino van por cada uno de los símbolos del alfabeto.
- * 
- * @author Fernando Mancía ({@link fernandomancia@gmail.com})
- * @author Cristhian Parra ({@link cdparra@gmail.com})
- */
-public class Dtrans {
-    Hashtable dtrans;
+public class TransitionMatrix {
+    private HashMap dtrans;
     
     /** Creates a new instance of Dtrans */
-    public Dtrans() {
-        dtrans = new Hashtable();
+    public TransitionMatrix() {
+        dtrans = new HashMap();
     }
 
     /**
@@ -43,16 +21,16 @@ public class Dtrans {
      * @param clave
      * @return
      */
-    public ListaEstados obtenerValor(DtransClave clave){
+    public ListaEstados obtenerValor(TransitionMatrixKey clave){
         return obtenerValor(clave.getIndiceEstados(), clave.getIndiceToken());
     }
     
     public ListaEstados obtenerValor(ListaEstados lista, Token token){
-        DtransClave comparar = new DtransClave(lista, token);
-        Enumeration en = dtrans.keys();
-        DtransClave clave;
-        while(en.hasMoreElements()){
-            clave = (DtransClave)en.nextElement();
+        TransitionMatrixKey comparar = new TransitionMatrixKey(lista, token);
+        Iterable<TransitionMatrixKey> s = dtrans.keySet();
+        TransitionMatrixKey clave;
+        while(s.iterator().hasNext()){
+            clave = (TransitionMatrixKey)s.iterator().next();
             if(clave.compareTo(comparar) == 0){
                 return (ListaEstados) dtrans.get(clave);
             }
@@ -61,7 +39,7 @@ public class Dtrans {
     }
     
     
-    public void setValor(DtransClave clave, ListaEstados valor){
+    public void setValor(TransitionMatrixKey clave, ListaEstados valor){
         dtrans.put(clave, valor);
     }
     
@@ -75,9 +53,9 @@ public class Dtrans {
     public Automata convertAutomata(){
         Automata a = new Automata(); 
         
-        Enumeration en = dtrans.keys();
-        while(en.hasMoreElements()){
-            DtransClave clave = (DtransClave) en.nextElement();
+        Iterable<TransitionMatrixKey> s = dtrans.keySet();
+        while(s.iterator().hasNext()){
+            TransitionMatrixKey clave = (TransitionMatrixKey) s.iterator().next();
             ListaEstados valor = obtenerValor(clave);
             
             int id_new_origen = clave.getIndiceEstados().getId();
@@ -133,9 +111,9 @@ public class Dtrans {
     
     public String imprimir(){
         String print = "";
-        Enumeration en = dtrans.keys();
-        while(en.hasMoreElements()){
-            DtransClave clave = (DtransClave) en.nextElement();
+        Iterable<TransitionMatrixKey> s = dtrans.keySet();
+        while(s.iterator().hasNext()){
+            TransitionMatrixKey clave = (TransitionMatrixKey) s.iterator().next();
             ListaEstados lista = obtenerValor(clave);
             
             print += "\n" + clave.getIndiceEstados().imprimir() +

@@ -23,7 +23,7 @@ public class Subconjunto {
     /**
      *  AFD, Matriz final que representa el AFD.
      **/
-    private Dtrans dtrans;
+    private TransitionMatrix dtrans;
     /**
      *  Lista de estados que se ira formando para el AFD
      */
@@ -32,7 +32,7 @@ public class Subconjunto {
     /** Creates a new instance of AlgSubconjuntos */
     public Subconjunto(Automata AFN) {
         this.AFN = AFN;
-        dtrans = new Dtrans();
+        dtrans = new TransitionMatrix();
         Destados = new ArrayList();
     }
 
@@ -44,7 +44,7 @@ public class Subconjunto {
      * @return
      * @throws exceptions.AutomataException
      */
-    public Dtrans ejecutar() throws AutomataException {
+    public TransitionMatrix ejecutar() throws AutomataException {
         Iterator it;
         Token simbolo;
         ListaEstados U;
@@ -55,7 +55,7 @@ public class Subconjunto {
         Destados.add(list_est);
 
         while (hayEstadosSinMarcar()) {
-            DtransClave clave;
+            TransitionMatrixKey clave;
             ListaEstados T = estadoSinMarcar();
             T.setMarcado(true);
 
@@ -74,7 +74,7 @@ public class Subconjunto {
                 } else {
                     U.setId(id_U);
                 }
-                clave = new DtransClave(T, simbolo);
+                clave = new TransitionMatrixKey(T, simbolo);
                 dtrans.setValor(clave, U);
             }
         }
