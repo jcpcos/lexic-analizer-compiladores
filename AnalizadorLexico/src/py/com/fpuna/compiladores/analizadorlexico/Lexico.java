@@ -1,4 +1,3 @@
-
 package py.com.fpuna.compiladores.analizadorlexico;
 
 import py.com.fpuna.compiladores.exceptions.LexicalError;
@@ -8,42 +7,19 @@ import py.com.fpuna.compiladores.exceptions.LexicalError;
  * @author markos
  */
 public class Lexico {
-
+    // expresion a analizar
     private StringBuffer regex;
-    
-    /**
-     * Lista de caracteres que conforman el alfabeto de la expresión regular<br><br>
-     * En conjunto con la propiedad "specials" forman la "Tabla de Símbolos"
-     * del traductor
-     */
-    private Alfabeto Alpha;
-    /**
-     * Símbolos especiales del lenguaje
-     */
+    // conjunto de simbolos posibles
+    private Alfabeto alphabet;
+    // forma parte de la tabla de simbolos
     private String specials;
 
-    /**
-     * Constructor de la clase del analizador léxico
-     * @param regex Expresión regular que se quiere analizar
-     * @param alfabeto Cadena de símbolos que constituyen el alfabeto
-     */
     public Lexico(String regex, String alfabeto) {
         this.regex = new StringBuffer(regex);
-        this.Alpha = new Alfabeto(alfabeto);
+        this.alphabet = new Alfabeto(alfabeto);
         this.specials = "*+?|()";
     }
 
-    /**
-     * Constructor de la clase del analizador léxico, con Alfabet ya creado
-     * en una ámbito superior
-     * @param regex Expresión regular que se quiere analizar
-     * @param alfabeto Objeto Alfabeto que contiene la lista completa de símbolos del mismo
-     */
-    public Lexico(String regex, Alfabeto alfabeto) {
-        this.regex = new StringBuffer(regex);
-        this.Alpha = alfabeto;
-        this.specials = "*+?|()";
-    }
 
     /**
      * Consume la entrada y devuelve el siguiente a procesar. Si no se trata de
@@ -56,18 +32,19 @@ public class Lexico {
      *                             símbolos conocidos
      */
     public Token next() throws LexicalError {
-
         String s = consume();
         Token siguiente;
 
         if (s.equalsIgnoreCase(" ") || s.equalsIgnoreCase("\t")) {
-            siguiente = next();         // Los espacios y tabuladores se ignoran
+            // Los espacios y tabuladores se ignoran
+            siguiente = next();         
 
-        } else if (this.specials.indexOf(s) >= 0 || this.Alpha.contiene(s) || s.length() == 0) {
-            siguiente = new Token(s);   // se procesan los simbolos del alfabeto o especiales
+        } else if (this.specials.indexOf(s) >= 0 || this.alphabet.contiene(s) ||
+                s.length() == 0) {
+            siguiente = new Token(s);   
 
         } else {
-            String except = "El símbolo " + s + " no es válido";
+            String except = "Simbolo no valido " + s;
             throw new LexicalError(except);
         }
 
@@ -75,18 +52,13 @@ public class Lexico {
     }
 
     /**
-     * Método que consume un carácter de la expresión regular. Si retorna la
-     * cadena vacía es porque ya no hay nada que consume. <br> <br>
+     * Extrae la primera letra de la regex y la devuelve como un String.
      *
-     * Consume consiste en extraer la primera letra de la expresión regular
-     * y devolverla como un String.
-     *
-     * @return El siguiente caracter en la expresión regular
+     * @return El siguiente caracter en la regex
      */
     private String consume() {
 
         String consumido = "";
-
         if (this.regex.length() > 0) {
             consumido = Character.toString(this.regex.charAt(0));
             this.regex.deleteCharAt(0);
@@ -96,32 +68,29 @@ public class Lexico {
     }
 
     /**
-     * Obtener el Alfabeto utilizado
-     * @return Alpha El Alfabeto completo utilizado
+     * 
+     * @return alfabeto analizado
      */
-    public Alfabeto getAlpha() {
-        return Alpha;
+    public Alfabeto getAlfabeto() {
+        return alphabet;
     }
 
     /**
-     * Obtener la expresión regular
-     * @return regex Expresión regular
+     * @return regex analizada
      */
     public StringBuffer getRegex() {
         return regex;
     }
 
     /**
-     * Obtener la expresión regular (en String)
-     * @return regex Expresión regular, como un String
+     * @return regex analizada, como un String
      */
     public String getRegexString() {
         return regex.toString();
     }
 
     /**
-     * Obtener caracteres especiales
-     * @return specials Los operadores y simbolos especiales del lenguaje
+     * @return specials os operadores y simbolos especiales del lenguaje
      */
     public String getSpecials() {
         return specials;
