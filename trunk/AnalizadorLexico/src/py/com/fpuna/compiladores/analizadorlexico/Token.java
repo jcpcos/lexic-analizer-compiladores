@@ -8,14 +8,22 @@ package py.com.fpuna.compiladores.analizadorlexico;
  * @author Fernando Mancía ({@link fernandomancia@gmail.com})
  */
 public class Token implements Comparable<Token> {
-    
-    
+
+    public enum TipoToken {
+
+        NONE, // token erróneo
+        KLEENE, // '*' --> cerradura de kleene
+        PLUS, // '+' --> cerradura positiva de kleene
+        CEROUNO, // '?' --> Cero o una instancia
+        OR, // '|' --> Disyunción
+        PARI, // '(' --> Paréntesis izquierdo
+        PARD, // ')' --> Paréntesis derecho
+        ALFA, // Cualquier letra del alfabeto
+        FIN         // Fin de la expresión regular
+    }
     private TipoToken tipo;
-    
-    
     private String valor;
-    
-    
+
     /**
      * Constructor principal del Token a partir del símbolo que se le pasa. Se
      * asume que el símbolo es válido ya que se deja la validcación al analizador
@@ -59,7 +67,7 @@ public class Token implements Comparable<Token> {
         this.valor = valor;
         this.setTipo(valor);
     }
-    
+
     /**
      * Método abstracto de la clase Comparable implementado por Token para poder
      * utilizar el operador == para las comparaciones <br><br>
@@ -70,8 +78,8 @@ public class Token implements Comparable<Token> {
      *         </ul>
      */
     public int compareTo(Token t) {
-        if (this.getTipo() == t.getTipo() 
-                && this.getValor().compareTo(t.getValor()) == 0 ) {
+        if (this.getTipo() == t.getTipo()
+                && this.getValor().compareTo(t.getValor()) == 0) {
             return 0;
         } else {
             return -1;
@@ -79,7 +87,7 @@ public class Token implements Comparable<Token> {
     }
 
     private void setTipo(String simbolo) {
-        
+
         if (simbolo.isEmpty()) {
             this.tipo = TipoToken.FIN;
         } else {

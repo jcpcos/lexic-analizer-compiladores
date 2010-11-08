@@ -1,6 +1,7 @@
 package py.com.fpuna.compiladores.analizadorlexico;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -10,15 +11,11 @@ import java.util.Iterator;
 public class Alfabeto extends ArrayList<String>  {
 
     public Alfabeto(String simbolos) {
-
+        String tmp;
         for (int i = 0; i < simbolos.length(); i++) {
-            String tmp = "" + simbolos.charAt(i);
+            tmp = "" + simbolos.charAt(i);
 
-            /**
-             * @TODO
-             * 1. No incluir espacio en blanco en el alfabeto
-             */
-            if (!this.contains(tmp)) {
+            if (!this.contains(tmp) && tmp.length() > 0) {
                 this.add(tmp);
             }
         }
@@ -26,44 +23,21 @@ public class Alfabeto extends ArrayList<String>  {
         this.ordenar();
     }
 
-    /**
-     * Método para obtener un iterador sobre el alfabeto.
-     * @return Iterador sobre el alfabeto.
-     */
     public Iterator getIterator() {
         return this.iterator();
     }
 
-    /**
-     * Método que permite obtener el tamaño del alfabeto .
-     * @return Cantidad de símbolos del alfabeto.
-     */
     public int getTamanho() {
         return this.size();
     }
 
-    /**
-     * Método para verificar la pertenencia de un símbolo al alfabeto.
-     * @param simbolo Símbolo cuya pertenencia queremos verificar
-     * @return <ul>
-     *            <li><b>True</b> si el simbolo pertenece al alfabeto</li>
-     *            <li><b>False</b> si el simbolo no pertenece al alfabeto</li>
-     *         </ul>
-     */
     public boolean contiene(String simbolo) {
-        if (this.contains(simbolo)) {
-            return true;
-        }
-        return false;
+        return this.contains(simbolo);
     }
 
-    /**
-     * Método que imprime el alfabeto.
-     * @return Un String que contiene la representación en texto del alfabeto.
-     */
     public String imprimir() {
 
-        String result = "ALPHA = { ";
+        String result = "{ ";
         for (int i = 0; i < this.size(); i++) {
 
             result += this.get(i);
@@ -77,17 +51,12 @@ public class Alfabeto extends ArrayList<String>  {
 
     }
 
-    /**
-     * Método privado que ordena las letras del alfabeto en orden ascendente.
-     */
     private void ordenar() {
         String a[] = new String[1];
         a = this.toArray(a);
         java.util.Arrays.sort(a);
 
         this.removeAll(this);
-        for (int i = 0; i < a.length; i++) {
-            this.add(a[i]);
-        }
+        this.addAll(Arrays.asList(a));
     }
 }
