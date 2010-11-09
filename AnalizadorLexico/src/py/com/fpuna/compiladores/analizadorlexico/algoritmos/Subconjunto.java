@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package py.com.fpuna.compiladores.analizadorlexico.algoritmos;
 
 import java.util.ArrayList;
@@ -19,66 +15,54 @@ import py.com.fpuna.compiladores.exceptions.AutomataException;
  */
 public class Subconjunto {
 
-    Automata AFN;
-    /**
-     *  AFD, Matriz final que representa el AFD.
-     **/
-    private TransitionMatrix dtrans;
-    /**
-     *  Lista de estados que se ira formando para el AFD
-     */
-    ArrayList<ListaEstados> Destados;
+    private Thompson automataSubconj;
+    private TransitionMatrix afdMatrix;
+    private ArrayList<ListaEstados> listaEstados;
 
-    /** Creates a new instance of AlgSubconjuntos */
-    public Subconjunto(Automata AFN) {
-        this.AFN = AFN;
-        dtrans = new TransitionMatrix();
-        Destados = new ArrayList();
+    public Subconjunto(Thompson a) {
+        automataSubconj = a;
+        afdMatrix = new TransitionMatrix();
+        listaEstados = new ArrayList();
     }
 
-    /**
-     * Implementación del algoritmo de Subconjuntos.
-     * Retorna un objeto Dtrans que es la matriz de transiciones.
-     * Este Dtrans se puede convertir tambien a un "Automata"
-     *
-     * @return
-     * @throws exceptions.AutomataException
-     */
     public TransitionMatrix ejecutar() throws AutomataException {
         Iterator it;
         Token simbolo;
-        ListaEstados U;
+        ListaEstados lista_1;
+        int i = 0;
 
-        Estado est_inicial = AFN.getEstados().getEstadoInicial();
-        ListaEstados list_est = e_cerradura(est_inicial, new ListaEstados());
-        list_est.setId(0);
-        Destados.add(list_est);
+        Estado est_inicial = automataSubconj.getEstados().getEstadoInicial();
+        ListaEstados lista_2 = e_cerradura(est_inicial, new ListaEstados());
+        lista_2.setId(0);
+        listaEstados.add(lista_2);
 
         while (hayEstadosSinMarcar()) {
             TransitionMatrixKey clave;
-            ListaEstados T = estadoSinMarcar();
-            T.setMarcado(true);
+            ListaEstados lista_3 = estadoSinMarcar();
+            lista_3.setMarcado(true);
 
-            it = AFN.getAlpha().iterator();
+            it = automataSubconj.getAlpha().iterator();
             while (it.hasNext()) {
                 simbolo = new Token((String) it.next());
-                U = e_cerradura(mover(T, simbolo));
-                if (U == null) {
+                lista_1 = e_cerradura(mover(lista_3, simbolo));
+                if (lista_1 == null) {
                     continue;
                 }
-                int id_U = estaEnDestados(U);
+                int id_U = estaEnDestados(lista_1);
                 if (id_U == -1) {
-                    U.setMarcado(false);
-                    U.setId(Destados.size());
-                    Destados.add(U);
+                    lista_1.setMarcado(false);
+                    lista_1.setId(listaEstados.size());
+                    listaEstados.add(lista_1);
                 } else {
-                    U.setId(id_U);
+                    lista_1.setId(id_U);
                 }
-                clave = new TransitionMatrixKey(T, simbolo);
-                dtrans.setValor(clave, U);
+                clave = new TransitionMatrixKey(lista_3, simbolo);
+                afdMatrix.setValor(clave, lista_1);
             }
+            System.out.println("iteracion " + i++);
         }
-        return this.dtrans;
+        System.out.println("aca no llega");
+        return this.afdMatrix;
     }
 
     /**
@@ -100,7 +84,7 @@ public class Subconjunto {
         ListaEstados listaNueva = null;
         while (it.hasNext()) {
             Enlace e = (Enlace) it.next();
-            if (e.getEtiqueta().compareTo("") == 0) {
+            if (e.getEtiqueta().compareTo(Automata.EMPTY) == 0) {
                 listaNueva = e_cerradura(e.getDestino(), listaActual);
                 listaActual = concatListas(listaActual, listaNueva);
 
@@ -180,7 +164,7 @@ public class Subconjunto {
      * @return
      */
     private boolean hayEstadosSinMarcar() {
-        Iterator it = Destados.iterator();
+        Iterator it = listaEstados.iterator();
         ListaEstados list_est;
         while (it.hasNext()) {
             list_est = (ListaEstados) it.next();
@@ -199,7 +183,7 @@ public class Subconjunto {
      * @throws exceptions.AutomataException
      */
     private ListaEstados estadoSinMarcar() throws AutomataException {
-        Iterator it = Destados.iterator();
+        Iterator it = listaEstados.iterator();
         ListaEstados list_est;
         while (it.hasNext()) {
             list_est = (ListaEstados) it.next();
@@ -211,14 +195,14 @@ public class Subconjunto {
     }
 
     /***
-     *  Metodo que retorna el id de la lista de estados U dentro de
+     * Metodo que retorna el id de la lista de estados U dentro de
      * Destados, si es que U no esta en la lista de estados retorna -1.
      *
      * @param U Lista de estados
      * @return El id de la lista U dentro de Destados
      */
     private int estaEnDestados(ListaEstados U) {
-        Iterator it = Destados.iterator();
+        Iterator it = listaEstados.iterator();
         ListaEstados tmp;
         while (it.hasNext()) {
             tmp = (ListaEstados) it.next();
