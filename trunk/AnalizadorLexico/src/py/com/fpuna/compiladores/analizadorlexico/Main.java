@@ -6,6 +6,7 @@ package py.com.fpuna.compiladores.analizadorlexico;
 
 import py.com.fpuna.compiladores.analizadorlexico.algoritmos.Minimizacion;
 import py.com.fpuna.compiladores.analizadorlexico.algoritmos.Subconjunto;
+import py.com.fpuna.compiladores.analizadorlexico.algoritmos.Thompson;
 
 /**
  *
@@ -23,34 +24,34 @@ public class Main {
         System.out.println("--> Generacion de un AFN simple con:\n-->   regex (sin espacios)="+regex+"\n-->   alfabeto="+alpha);
 
         Analizador t = new Analizador(regex, alpha);
-        Automata A = t.traducir();
+        Thompson A = t.traducir();
         A.setAlpha(t.getAlfabeto());
         A.setRegex(t.getRegex());
 
         String salida_simple = A.imprimir();
         System.out.println(salida_simple);
 
-//        //Alg de Subconjuntos
-//        Subconjunto algSub = new Subconjunto(A);
-//        Automata AFD = algSub.ejecutar().convertAutomata();
-//        System.out.println("\nAFD\n____\n");
-//        System.out.println(AFD.imprimir());
-//
-//        //Eliminar estados inalacanzables
-//        AFD = Subconjunto.eliminar_estados_inalcanzables(AFD);
-//        System.out.println("\nAFD sin estados inalcanzables\n___________\n");
-//        System.out.println(AFD.imprimir());
-//
-//        //Alg de Minimizacion
-//        Minimizacion algMin = new Minimizacion(AFD);
-//        Automata AFDM = algMin.minimizar();
-//        System.out.println("\nAFDM\n_____\n");
-//        System.out.println(AFDM.imprimir());
-//
-//        //Eliminar estados muertos
-//        AFDM.eliminarIslas();
-//        System.out.println("\nAFDM sin estados muertos\n________________\n");
-//        System.out.println(AFDM.imprimir());
+        //Alg de Subconjuntos
+        Subconjunto algSub = new Subconjunto(A);
+        Automata AFD = algSub.ejecutar().convertAutomata();
+        System.out.println("\nAFD\n____\n");
+        System.out.println(AFD.imprimir());
+
+        //Eliminar estados inalacanzables
+        AFD = Subconjunto.eliminar_estados_inalcanzables(AFD);
+        System.out.println("\nAFD sin estados inalcanzables\n___________\n");
+        System.out.println(AFD.imprimir());
+
+        //Alg de Minimizacion
+        Minimizacion algMin = new Minimizacion(AFD);
+        Automata AFDM = algMin.minimizar();
+        System.out.println("\nAFDM\n_____\n");
+        System.out.println(AFDM.imprimir());
+
+        //Eliminar estados muertos
+        AFDM.eliminarIslas();
+        System.out.println("\nAFDM sin islas\n________________\n");
+        System.out.println(AFDM.imprimir());
 
     }
 
