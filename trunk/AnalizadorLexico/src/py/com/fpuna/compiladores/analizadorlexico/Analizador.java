@@ -30,58 +30,19 @@ import py.com.fpuna.compiladores.exceptions.LexicalError;
  * @author Cristhian Parra ({@link cdparra@gmail.com})
  * @author Fernando Mancia ({@link fernandomancia@gmail.com})
  */
-public class Analizador {
+public final class Analizador {
  
-    /**
-     * Analizador Lexico
-     */
     private Lexico lexico;
-    
-    /**
-     * Expresión regular a traducir
-     */
     private String regex;
-    
-    /**
-     * Token que contiene el simbolo que se está procesando actualmente
-     */
     private Token preanalisis;
-    
-    /**
-     * Alfabeto sobre el cual está definida la expresión regular.
-     */
     private Alfabeto alfabeto;
-    
-    /**
-     * Automata en el cual se guardará el resultado final de la traducción. 
-     * Se trata de un Automata del tipo AFN. 
-     */
     private Thompson automata;
-    
-    /**
-     * Simbolo especial utilizado para guardar recordar el símbolo operador
-     * consumido por una producción, cuando se deba aplicar la misma en una 
-     * producción superior
-     */
     private String Special;
-    
-    /**
-     * Contador de caracteres procesados
-     */
     private int posicion;
-    
-    /**
-     * Flag que indica la existencia o no de errores al final de la traducción
-     */
     private boolean hayErrores = false;
-
-    /**
-     * Flag que indica la existencia o no de errores al final de la traducción
-     */
     private String errMsg = ""; 
-    /**
-     * Constructor vacío de la clase <code>Analizador</code>
-     */
+
+    
     public Analizador() {
     }
 
@@ -101,11 +62,10 @@ public class Analizador {
             // creamos el analizador léxico
             this.preanalisis = nextSymbol(); // obtenemos el primer símbolo desde el analizador léxico
         } catch (LexicalError ex) {
-            
             this.hayErrores = true;            
             this.errMsg = 
                     "Se produjo un error FATAL en el traductor. La generación del AFN no puede continuar\n"+
-                    "--> "+ex.getMessage();
+                    "--> " + ex.getMessage();
             
             System.out.println(this.getErrMsg());
             this.abort();
@@ -192,13 +152,11 @@ public class Analizador {
      *
      */
     private Thompson RE() {
-        
         // automatas auxiliares de producciones llamadas
         Thompson Aux1 = null;
         Thompson Aux2;
         
         try {
-
             Aux1 = this.resimple();
             Aux2 = this.A();
 
