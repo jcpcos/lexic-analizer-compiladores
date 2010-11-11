@@ -19,7 +19,6 @@ public class Alfabeto extends ArrayList<String>  {
                 this.add(tmp);
             }
         }
-
         this.ordenar();
     }
 

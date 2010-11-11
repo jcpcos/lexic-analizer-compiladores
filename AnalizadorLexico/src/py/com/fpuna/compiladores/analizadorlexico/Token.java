@@ -10,7 +10,6 @@ package py.com.fpuna.compiladores.analizadorlexico;
 public class Token implements Comparable<Token> {
 
     public enum TipoToken {
-
         NONE, // token erróneo
         KLEENE, // '*' --> cerradura de kleene
         PLUS, // '+' --> cerradura positiva de kleene

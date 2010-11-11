@@ -48,7 +48,7 @@ public class Lexico {
             siguiente = new Token(s);   
 
         } else {
-            String except = "Simbolo no valido " + s;
+            String except = "Simbolo no valido [ " + s + " ]";
             throw new LexicalError(except);
         }
 

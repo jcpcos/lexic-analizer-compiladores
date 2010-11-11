@@ -21,7 +21,7 @@ public class Main {
         String alpha = "ab";
 
         System.out.println("Testing: Analizador.java (testAfGen)");
-        System.out.println("--> Generacion de un AFN simple con:\n-->   regex (sin espacios)="+regex+"\n-->   alfabeto="+alpha);
+        System.out.println("--> Generacion de un AFN simple con:\n-->   regex (sin espacios)= " + regex + "\n-->   alfabeto="+alpha);
 
         Analizador t = new Analizador(regex, alpha);
         Thompson A = t.traducir();
