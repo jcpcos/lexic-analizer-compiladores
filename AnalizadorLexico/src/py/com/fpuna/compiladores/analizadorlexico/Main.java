@@ -33,7 +33,7 @@ public class Main {
 
         //Alg de Subconjuntos
         Subconjunto algSub = new Subconjunto(A);
-        Automata AFD = algSub.ejecutar().convertAutomata();
+        Thompson AFD = algSub.ejecutar().convertAutomata();
         System.out.println("\nAFD\n____\n");
         System.out.println(AFD.imprimir());
 
