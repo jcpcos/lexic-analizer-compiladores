@@ -11,6 +11,16 @@
 
 package py.com.fpuna.compiladores.gui.anlex;
 
+import javax.swing.JTable;
+import py.com.fpuna.compiladores.analizadorlexico.Analizador;
+import py.com.fpuna.compiladores.analizadorlexico.Automata;
+import py.com.fpuna.compiladores.analizadorlexico.Automata.TipoAutomata;
+import py.com.fpuna.compiladores.analizadorlexico.algoritmos.Minimizacion;
+import py.com.fpuna.compiladores.analizadorlexico.algoritmos.Subconjunto;
+import py.com.fpuna.compiladores.analizadorlexico.algoritmos.Thompson;
+import py.com.fpuna.compiladores.analizadorlexico.algoritmos.TransitionMatrix;
+import py.com.fpuna.compiladores.exceptions.AutomataException;
+
 /**
  *
  * @author lizj
@@ -20,6 +30,8 @@ public class Main extends javax.swing.JFrame {
     /** Creates new form Main */
     public Main() {
         initComponents();
+        labelErrores.setText(""); // el label de errores se limpia al iniciar
+        
     }
 
     /** This method is called from within the constructor to
@@ -41,12 +53,15 @@ public class Main extends javax.swing.JFrame {
         lblRegexHelp1 = new javax.swing.JLabel();
         pnlAlfabeto = new javax.swing.JPanel();
         txtAlfabeto = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        procesar = new javax.swing.JButton();
+        cancel = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        txtMensajes = new javax.swing.JTextArea();
+        jLabel2 = new javax.swing.JLabel();
+        labelErrores = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
-        jToggleButton1 = new javax.swing.JToggleButton();
-        jToggleButton2 = new javax.swing.JToggleButton();
+        jTabbedPane2 = new javax.swing.JTabbedPane();
         lblAutores = new javax.swing.JLabel();
 
         jPopupMenu1.setName("jPopupMenu1"); // NOI18N
@@ -54,7 +69,7 @@ public class Main extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setName("Form"); // NOI18N
 
-        org.jdesktop.application.ResourceMap resourceMap = org.jdesktop.application.Application.getInstance(py.com.fpuna.compiladores.gui.anlex.AnlexApp.class).getContext().getResourceMap(Main.class);
+        org.jdesktop.application.ResourceMap resourceMap = org.jdesktop.application.Application.getInstance().getContext().getResourceMap(Main.class);
         jLabel1.setBackground(resourceMap.getColor("jLabel1.background")); // NOI18N
         jLabel1.setFont(resourceMap.getFont("jLabel1.font")); // NOI18N
         jLabel1.setForeground(resourceMap.getColor("jLabel1.foreground")); // NOI18N
@@ -90,8 +105,8 @@ public class Main extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlRegexLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pnlRegexLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(lblRegexHelp1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 313, Short.MAX_VALUE)
-                    .addComponent(txtRegex, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 313, Short.MAX_VALUE))
+                    .addComponent(lblRegexHelp1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 305, Short.MAX_VALUE)
+                    .addComponent(txtRegex, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 305, Short.MAX_VALUE))
                 .addContainerGap())
         );
         pnlRegexLayout.setVerticalGroup(
@@ -107,6 +122,7 @@ public class Main extends javax.swing.JFrame {
         pnlAlfabeto.setBorder(javax.swing.BorderFactory.createTitledBorder(resourceMap.getString("pnlAlfabeto.border.title"))); // NOI18N
         pnlAlfabeto.setName("pnlAlfabeto"); // NOI18N
 
+        txtAlfabeto.setToolTipText(resourceMap.getString("txtAlfabeto.toolTipText")); // NOI18N
         txtAlfabeto.setName("txtAlfabeto"); // NOI18N
 
         javax.swing.GroupLayout pnlAlfabetoLayout = new javax.swing.GroupLayout(pnlAlfabeto);
@@ -115,7 +131,7 @@ public class Main extends javax.swing.JFrame {
             pnlAlfabetoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlAlfabetoLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(txtAlfabeto, javax.swing.GroupLayout.DEFAULT_SIZE, 313, Short.MAX_VALUE)
+                .addComponent(txtAlfabeto, javax.swing.GroupLayout.DEFAULT_SIZE, 305, Short.MAX_VALUE)
                 .addContainerGap())
         );
         pnlAlfabetoLayout.setVerticalGroup(
@@ -126,32 +142,59 @@ public class Main extends javax.swing.JFrame {
                 .addContainerGap(27, Short.MAX_VALUE))
         );
 
-        jButton1.setText(resourceMap.getString("jButton1.text")); // NOI18N
-        jButton1.setName("jButton1"); // NOI18N
+        procesar.setText(resourceMap.getString("procesar.text")); // NOI18N
+        procesar.setName("procesar"); // NOI18N
+        procesar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                procesarActionPerformed(evt);
+            }
+        });
 
-        jButton2.setText(resourceMap.getString("jButton2.text")); // NOI18N
-        jButton2.setName("jButton2"); // NOI18N
+        cancel.setText(resourceMap.getString("cancel.text")); // NOI18N
+        cancel.setName("cancel"); // NOI18N
+
+        jScrollPane1.setName("jScrollPane1"); // NOI18N
+
+        txtMensajes.setColumns(20);
+        txtMensajes.setRows(5);
+        txtMensajes.setName("txtMensajes"); // NOI18N
+        jScrollPane1.setViewportView(txtMensajes);
+
+        jLabel2.setText(resourceMap.getString("jLabel2.text")); // NOI18N
+        jLabel2.setName("jLabel2"); // NOI18N
+
+        labelErrores.setText(resourceMap.getString("labelErrores.text")); // NOI18N
+        labelErrores.setName("labelErrores"); // NOI18N
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(172, 172, 172)
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jButton2)
-                .addContainerGap(354, Short.MAX_VALUE))
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(77, 77, 77)
-                .addComponent(lblMensaje)
-                .addContainerGap(366, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addGap(33, 33, 33)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(pnlAlfabeto, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(pnlRegex, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(321, 321, 321))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(77, 77, 77)
+                        .addComponent(lblMensaje))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGap(172, 172, 172)
+                                .addComponent(procesar, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(cancel)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 25, Short.MAX_VALUE))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGap(33, 33, 33)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(pnlAlfabeto, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(pnlRegex, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addGap(47, 47, 47)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(labelErrores)
+                            .addComponent(jLabel2)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -159,14 +202,22 @@ public class Main extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(lblMensaje, javax.swing.GroupLayout.PREFERRED_SIZE, 15, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(pnlAlfabeto, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(31, 31, 31)
-                .addComponent(pnlRegex, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
-                    .addComponent(jButton2))
-                .addContainerGap(14, Short.MAX_VALUE))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(labelErrores)
+                        .addGap(59, 59, 59)
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane1))
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel1Layout.createSequentialGroup()
+                        .addComponent(pnlAlfabeto, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(31, 31, 31)
+                        .addComponent(pnlRegex, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(procesar)
+                            .addComponent(cancel))))
+                .addContainerGap())
         );
 
         jTabbedPane1.addTab(resourceMap.getString("jPanel1.TabConstraints.tabTitle"), jPanel1); // NOI18N
@@ -175,31 +226,24 @@ public class Main extends javax.swing.JFrame {
 
         jPanel2.setName("jPanel2"); // NOI18N
 
-        jToggleButton1.setText(resourceMap.getString("jToggleButton1.text")); // NOI18N
-        jToggleButton1.setName("jToggleButton1"); // NOI18N
-
-        jToggleButton2.setText(resourceMap.getString("jToggleButton2.text")); // NOI18N
-        jToggleButton2.setName("jToggleButton2"); // NOI18N
+        jTabbedPane2.setTabPlacement(javax.swing.JTabbedPane.LEFT);
+        jTabbedPane2.setName("jTabbedPane2"); // NOI18N
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(21, 21, 21)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(jToggleButton2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jToggleButton1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(564, Short.MAX_VALUE))
+                .addGap(39, 39, 39)
+                .addComponent(jTabbedPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 612, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(20, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jToggleButton1)
-                .addGap(37, 37, 37)
-                .addComponent(jToggleButton2)
-                .addContainerGap(26, Short.MAX_VALUE))
+                .addComponent(jTabbedPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 239, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(65, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
@@ -216,7 +260,7 @@ public class Main extends javax.swing.JFrame {
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(198, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab(resourceMap.getString("jPanel3.TabConstraints.tabTitle"), jPanel3); // NOI18N
@@ -258,6 +302,206 @@ public class Main extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void procesarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_procesarActionPerformed
+        // TODO add your handling code here:
+        doLexicAnalisys();
+    }//GEN-LAST:event_procesarActionPerformed
+
+    private Thompson afn, afd, afdMin;
+    private void doLexicAnalisys()
+    {
+        String regExp = txtRegex.getText();
+        String alfabeto = txtAlfabeto.getText();
+        boolean Errors = false;
+
+        // Check entries
+        if (regExp.compareTo("") == 0) {
+            txtMensajes.append("# --> No se introdujo ninguna expresion regular\n");
+            txtMensajes.append("# <--------------------------------------------\n");
+            Errors = true;
+        } else if (alfabeto.compareTo("") == 0) {
+            txtMensajes.append("# --> No se introdujo ningun alfabeto\n");
+            txtMensajes.append("# <-------------------------------------------\n");
+            Errors = true;
+        } else {
+
+            bloquearControles();
+
+            // Procesar la expresión regular y Generar el AFN, el AFD y el AFDMínimos
+            txtMensajes.append("# --> Generando el AFN...\n");
+            Analizador traductor = new Analizador(regExp, alfabeto);
+
+            Errors = traductor.isHayErrores();
+            // 1. Generar el AFN
+            if (!Errors) {
+                afn = traductor.traducir();
+            }
+
+            Errors = traductor.isHayErrores();
+
+            // 1.2. Verificar si hubieron errores.
+            if (Errors) {
+                txtMensajes.append("# ERRORS: --> " + traductor.getErrMsg() + "\n");
+                txtMensajes.append("# <-------------------------------------------\n");
+            } else {
+
+                txtMensajes.append("# --> AFN Generado con éxito!\n");
+
+                // 2. Generar el AFD
+                txtMensajes.append("# --> Generando el AFD...\n");
+                Subconjunto subconjunto;
+                TransitionMatrix transMatriz;
+
+                try {
+                    subconjunto = new Subconjunto(afn);
+                    transMatriz = subconjunto.ejecutar();
+                    this.afd = transMatriz.convertAutomata();
+
+                    this.afd = Subconjunto.eliminar_estados_inalcanzables(afd);
+
+                    this.afd.setAlpha(this.afn.getAlpha());
+                    this.afd.setRegex(this.txtRegex.getText());
+                    this.afd.tipoAutomata = TipoAutomata.AFD.ordinal();
+
+
+                } catch (AutomataException ex) {
+                    txtMensajes.append("# ERRORS: --> " + ex.getMessage() + "\n");
+                    txtMensajes.append("# <-------------------------------------------\n");
+                    Errors = true;
+                } catch (Exception ex) {
+                    txtMensajes.append("# ERRORS: --> " + ex.getMessage() + "\n");
+                    txtMensajes.append("# <-------------------------------------------\n");
+                    Errors = true;
+                }
+
+                if (!Errors) {
+                    try {
+                        txtMensajes.append("# --> AFD Generado con éxito!\n");
+
+                        // 3. Generar el AFDMínimo
+                        txtMensajes.append("# --> Generando el AFD Mínimo...\n");
+
+                        Minimizacion minimize = new Minimizacion(afd);
+                        this.afdMin = minimize.minimizar();
+                        this.afdMin.eliminarIslas();
+
+                        this.afdMin.setAlpha(this.afn.getAlpha());
+                        this.afdMin.setRegex(this.txtRegex.getText());
+                        this.afdMin.tipoAutomata = TipoAutomata.AFDMin.ordinal();
+
+                        // 4. Poblar las tablas de la ventana principal
+                        this.cargarTabla(jTableAFN, afn);
+                        this.cargarTabla(jTableAFD, afd);
+                        this.cargarTabla(jTableAFDMin, afdMin);
+                    } catch (AutomataException ex) {
+                        txtMensajes.append("# ERRORS: --> " + ex.getMessage() + "\n");
+                        txtMensajes.append("# <-------------------------------------------\n");
+                        Errors = true;
+                    } catch (Exception ex) {
+                        txtMensajes.append("# ERRORS: --> " + ex.getMessage() + "\n");
+                        txtMensajes.append("# <-------------------------------------------\n");
+                        Errors = true;
+                    }
+                }
+            }
+
+            this.habilitarControles();
+
+            if (Errors) {
+                this.bloquearValidacion();
+                this.bloquearVistas();
+            }
+        }
+    }
+
+    public void cargarTabla(JTable Tabla, Thompson automata) {
+        AutomataTable tmodel = new AutomataTable(automata);
+        tmodel.arreglarObjetosNulos();
+        Tabla.setModel(tmodel);
+        this.resetTablaRenderer(Tabla);
+    }
+
+    private void bloquearControles() {
+        this.bloquearValidacion();
+        this.bloquearRegEx();
+        this.bloquearRegExProcess();
+        this.bloquearVistas();
+        this.bloqearAlpha();
+        this.bloquearDefaultAlpha();
+    }
+
+    private void habilitarControles() {
+        this.habilitarValidacion();
+        this.habilitarRegEx();
+        this.habilitarRegExProcess();
+        this.habilitarVistas();
+        this.habilitarAlpha();
+        this.habilitarDefaultAlpha();
+    }
+
+    private void habilitarRegEx() {
+        this.txtRegex.setEnabled(true);
+    }
+
+    private void bloquearRegEx() {
+        this.txtRegex.setEnabled(false);
+    }
+
+    private void habilitarRegExProcess() {
+        this.procesar.setEnabled(true);
+        //this.jMenuItemProcesarReGex.setEnabled(true);
+    }
+
+    private void bloquearRegExProcess() {
+        this.procesar.setEnabled(false);
+        //this.jMenuItemProcesarReGex.setEnabled(false);
+    }
+
+    private void habilitarAlpha() {
+        txtAlfabeto.setEnabled(true);
+    }
+
+    private void bloqearAlpha() {
+        txtAlfabeto.setEnabled(false);
+    }
+
+    private void habilitarVistas() {
+//        this.viewAFNbtn.setEnabled(true);
+//        this.viewAFDMinbtn.setEnabled(true);
+//        this.viewAFDbtn.setEnabled(true);
+//        this.jComboBoxGraph.setEnabled(true);
+    }
+
+    private void bloquearVistas() {
+//        this.viewAFNbtn.setEnabled(false);
+//        this.viewAFDMinbtn.setEnabled(false);
+//        this.viewAFDbtn.setEnabled(false);
+//        this.jComboBoxGraph.setEnabled(false);
+    }
+
+    private void habilitarValidacion() {
+//        this.jTextValidate.setEnabled(true);
+//        this.validateBtn.setEnabled(true);
+//        this.jComboBoxValidation.setEnabled(true);
+    }
+
+    private void bloquearValidacion() {
+//        this.jTextValidate.setEnabled(false);
+//        this.validateBtn.setEnabled(false);
+//        this.jComboBoxValidation.setEnabled(false);
+//        this.afnSim = null;
+//        this.afdSim = null;
+//        this.afdMinSim = null;
+
+    }
+
+    private void habilitarDefaultAlpha() {
+        //useSelectedAlphaBtn.setEnabled(true);
+    }
+
+    private void bloquearDefaultAlpha() {
+       // useSelectedAlphaBtn.setEnabled(false);
+    }
     /**
     * @param args the command line arguments
     */
@@ -270,22 +514,25 @@ public class Main extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
+    private javax.swing.JButton cancel;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPopupMenu jPopupMenu1;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTabbedPane jTabbedPane1;
-    private javax.swing.JToggleButton jToggleButton1;
-    private javax.swing.JToggleButton jToggleButton2;
+    private javax.swing.JTabbedPane jTabbedPane2;
+    private javax.swing.JLabel labelErrores;
     private javax.swing.JLabel lblAutores;
     private javax.swing.JLabel lblMensaje;
     private javax.swing.JLabel lblRegexHelp1;
     private javax.swing.JPanel pnlAlfabeto;
     private javax.swing.JPanel pnlRegex;
+    private javax.swing.JButton procesar;
     private javax.swing.JTextField txtAlfabeto;
+    private javax.swing.JTextArea txtMensajes;
     private javax.swing.JTextField txtRegex;
     // End of variables declaration//GEN-END:variables
 
