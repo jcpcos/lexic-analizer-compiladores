@@ -253,12 +253,12 @@ public class Subconjunto {
      * @param AFD
      * @return AFD sin estados inalcanzables
      */
-    public static Automata eliminar_estados_inalcanzables(Automata AFD) {
+    public static Thompson eliminar_estados_inalcanzables(Thompson AFD) {
         Estado inicial = AFD.getInicial();
         AFD.getEstados().resetVisitas();
         visitarRecursivo(inicial);
 
-        Automata AFDNEW = new Automata();
+        Thompson AFDNEW = new Thompson();
         AFDNEW.setAlpha(AFD.getAlpha());
         AFDNEW.setRegex(AFD.getRegex());
 

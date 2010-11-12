@@ -44,7 +44,7 @@ public class Minimizacion {
     * @return Automata (Un nuevo automata minimizado)
     * @throws exceptions.AutomataException
     */
-   public Automata minimizar() throws AutomataException{
+   public Thompson minimizar() throws AutomataException{
        ArrayList<ListaEstados> anterior = new ArrayList<ListaEstados>();
        ArrayList<ListaEstados> actual = new ArrayList<ListaEstados>();
 
@@ -87,7 +87,7 @@ public class Minimizacion {
 
        //Ahora se convierte "actual"  en "Automata"
        //Primero creamos los estados
-       Automata AFDM = new Automata();
+       Thompson AFDM = new Thompson();
        Iterator it = actual.iterator();
        while(it.hasNext()){
             ListaEstados lest = (ListaEstados) it.next();
