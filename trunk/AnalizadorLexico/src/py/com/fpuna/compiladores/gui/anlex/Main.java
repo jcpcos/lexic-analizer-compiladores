@@ -13,7 +13,6 @@ package py.com.fpuna.compiladores.gui.anlex;
 
 import javax.swing.JTable;
 import py.com.fpuna.compiladores.analizadorlexico.Analizador;
-import py.com.fpuna.compiladores.analizadorlexico.Automata;
 import py.com.fpuna.compiladores.analizadorlexico.Automata.TipoAutomata;
 import py.com.fpuna.compiladores.analizadorlexico.algoritmos.Minimizacion;
 import py.com.fpuna.compiladores.analizadorlexico.algoritmos.Subconjunto;
