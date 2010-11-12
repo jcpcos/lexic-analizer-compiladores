@@ -36,6 +36,9 @@ public class Main extends javax.swing.JFrame {
         
     }
 
+    private Thompson afn, afd, afdMin;
+    private DibujoAutomata dibujo;
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -462,19 +465,18 @@ public class Main extends javax.swing.JFrame {
 }//GEN-LAST:event_procesarActionPerformed
 
     private void viewAFNbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewAFNbtnActionPerformed
-        this.viewGraphics(this.afn);
+        this.dibujarAutomata(this.afn);
 }//GEN-LAST:event_viewAFNbtnActionPerformed
 
     private void viewAFDbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewAFDbtnActionPerformed
-        this.viewGraphics(this.afn);
+        this.dibujarAutomata(this.afn);
 }//GEN-LAST:event_viewAFDbtnActionPerformed
 
     private void viewAFDMinbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewAFDMinbtnActionPerformed
-        this.viewGraphics(this.afdMin);
+        this.dibujarAutomata(this.afdMin);
 }//GEN-LAST:event_viewAFDMinbtnActionPerformed
 
-    private Thompson afn, afd, afdMin;
-    private DibujoAutomata dibujo;
+    
     private void doLexicAnalisys()
     {
         String regExp = txtRegex.getText();
@@ -588,13 +590,13 @@ public class Main extends javax.swing.JFrame {
         this.resetTablaRenderer(Tabla);
     }
 
-     private void viewGraphics(Thompson automata) {
+     private void dibujarAutomata(Thompson automata) {
 
-            this.dibujo = new DibujoAutomata(automata);
-            this.dibujo.setJTextAlphaString(txtAlfabeto.getText());
-            this.dibujo.setJTextReGexString(txtRegex.getText());            
-            this.dibujo.setVisible(true);
-            this.dibujo.toFront();
+        this.dibujo = new DibujoAutomata(automata);
+        this.dibujo.setJTextAlphaString(txtAlfabeto.getText());
+        this.dibujo.setJTextReGexString(txtRegex.getText());
+        this.dibujo.setVisible(true);
+        this.dibujo.toFront();
        
     }
 
