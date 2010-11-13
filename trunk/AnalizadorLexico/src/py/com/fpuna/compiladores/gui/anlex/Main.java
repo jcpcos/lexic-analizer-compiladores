@@ -13,7 +13,6 @@ package py.com.fpuna.compiladores.gui.anlex;
 import java.awt.Color;
 import java.awt.Font;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import py.com.fpuna.compiladores.analizadorlexico.Analizador;
@@ -39,16 +38,25 @@ public class Main extends javax.swing.JFrame {
         txtAlfabeto.setText("ab");
         txtRegex.setText("(a|b)*");
     }
+
+    public void cargarTabla(JTable Tabla, Thompson automata) {
+        AutomataTable tmodel = new AutomataTable(automata);
+        tmodel.arreglarObjetosNulos();
+        Tabla.setModel(tmodel);
+        this.resetTablaRenderer(Tabla);
+    }
+
+    public void checkRegEx() {
+        String regex = txtRegex.getText();
+        if (regex.compareTo("") != 0) {
+            this.habilitarRegExProcess();
+        } else {
+            this.bloquearRegExProcess();
+        }
+    }
+
     private Thompson afn, afd, afdMin;
     private DibujoAutomata dibujo;
-    private AutomataGrafico graphics;
-    private Configuracion conf;
-    private Simulacion afnSim;
-    private Simulacion afdSim;
-    private Simulacion afdMinSim;
-    private boolean afnSimResult;
-    private boolean afdSimResult;
-    private boolean afdMinSimResult;
     private JDialog about;
 
     /** This method is called from within the constructor to
@@ -562,6 +570,7 @@ public class Main extends javax.swing.JFrame {
         txtRegex.setText(null);
 }//GEN-LAST:event_cancelActionPerformed
 
+    //action del button OK, se procesan las entradas
     private void procesarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_procesarActionPerformed
         // TODO add your handling code here:
         doLexicAnalisys();
@@ -593,11 +602,11 @@ public class Main extends javax.swing.JFrame {
         this.txtRegex.setText("");
         this.txtAlfabeto.setText("");
         this.bloquearRegExProcess();
-        this.bloquearValidacion();
-        this.bloquearVistas();
         jTableAFN.setModel(new AutomataTable(null));
         jTableAFD.setModel(new AutomataTable(null));
         jTableAFDMin.setModel(new AutomataTable(null));
+
+        //deshabilita los buttons de los dibujos
         viewAFDMinbtn.setEnabled(false);
         viewAFNbtn.setEnabled(false);
         viewAFDbtn.setEnabled(false);
@@ -607,15 +616,7 @@ public class Main extends javax.swing.JFrame {
     private void txtAlfabetoKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtAlfabetoKeyReleased
         // TODO add your handling code here:
     }//GEN-LAST:event_txtAlfabetoKeyReleased
-    public void checkRegEx() {
-        String regex = txtRegex.getText();
-        if (regex.compareTo("") != 0) {
-            this.habilitarRegExProcess();
-        } else {
-            this.bloquearRegExProcess();
-        }
-    }
-
+    
     private void txtRegexKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtRegexKeyReleased
         // TODO add your handling code here:
         this.checkRegEx();
@@ -630,6 +631,7 @@ public class Main extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jMenu1ActionPerformed
 
+    //Action del submenú About..
     private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
         // TODO add your handling code here:
 
@@ -677,7 +679,7 @@ public class Main extends javax.swing.JFrame {
                 txtMensajes.append("\n");
             } else {
 
-                txtMensajes.append("# AFN Generado con exito!\n");
+                txtMensajes.append(">> AFN Generado con exito!\n");
 
                 // 2. Generar el AFD
                 txtMensajes.append("# Generando el AFD...\n");
@@ -711,7 +713,7 @@ public class Main extends javax.swing.JFrame {
                         txtMensajes.append(">> AFD Generado con exito!\n");
 
                         // 3. Generar el AFDMínimo
-                        txtMensajes.append(">> Generando el AFD Minimo...\n");
+                        txtMensajes.append("# Generando el AFD Minimo...\n");
 
                         Minimizacion minimize = new Minimizacion(afd);
                         this.afdMin = minimize.minimizar();
@@ -720,7 +722,8 @@ public class Main extends javax.swing.JFrame {
                         this.afdMin.setAlpha(this.afn.getAlpha());
                         this.afdMin.setRegex(this.txtRegex.getText());
                         this.afdMin.tipoAutomata = TipoAutomata.AFDMin.ordinal();
-
+                        txtMensajes.append(">> AFDmin Generado con exito!\n");
+                        
                         // 4. Cargar las tablas del tab de Transiciones
                         this.cargarTabla(jTableAFN, afn);
                         this.cargarTabla(jTableAFD, afd);
@@ -740,18 +743,7 @@ public class Main extends javax.swing.JFrame {
 
             this.habilitarControles();
 
-            if (Errors) {
-                this.bloquearValidacion();
-                this.bloquearVistas();
-            }
         }
-    }
-
-    public void cargarTabla(JTable Tabla, Thompson automata) {
-        AutomataTable tmodel = new AutomataTable(automata);
-        tmodel.arreglarObjetosNulos();
-        Tabla.setModel(tmodel);
-        this.resetTablaRenderer(Tabla);
     }
 
     private void dibujarAutomata(Thompson automata) {
@@ -777,21 +769,15 @@ public class Main extends javax.swing.JFrame {
     }
 
     private void bloquearControles() {
-        this.bloquearValidacion();
         this.bloquearRegEx();
         this.bloquearRegExProcess();
-        this.bloquearVistas();
         this.bloqearAlpha();
-        this.bloquearDefaultAlpha();
     }
 
     private void habilitarControles() {
-        this.habilitarValidacion();
         this.habilitarRegEx();
         this.habilitarRegExProcess();
-        this.habilitarVistas();
         this.habilitarAlpha();
-        this.habilitarDefaultAlpha();
     }
 
     private void habilitarRegEx() {
@@ -812,59 +798,6 @@ public class Main extends javax.swing.JFrame {
         //this.jMenuItemProcesarReGex.setEnabled(false);
     }
 
-    private void cargarSimulacion(Thompson automata) {
-        Simulacion sim = null;
-        boolean simResult = false;
-
-        if (automata.tipoAutomata == TipoAutomata.AFN.ordinal()) {
-            if (afnSim != null) {
-                sim = afnSim;
-                simResult = afnSimResult;
-            }
-        } else if (automata.tipoAutomata == TipoAutomata.AFD.ordinal()) {
-            if (afdSim != null) {
-                sim = afdSim;
-                simResult = afdSimResult;
-            }
-        } else {
-            if (afdMinSim != null) {
-                sim = afdMinSim;
-                simResult = afdMinSimResult;
-            }
-        }
-
-        if (this.graphics != null) {
-            this.graphics.setSimulacion(sim);
-            this.graphics.setSimulacionResult(simResult);
-        }
-    }
-
-    private void viewGraphics(Thompson automata) {
-
-        //int toolSelected = jComboBoxGraph.getSelectedIndex();
-
-        txtMensajes.append("# --> Construyendo Imagen del Automata...\n");
-
-        // if (toolSelected == 1) {
-        this.graphics = new AutomataGrafico("graphviz", automata, this.conf);
-        this.graphics.setJTextAlphaString(txtAlfabeto.getText());
-        this.graphics.setJTextReGexString(txtRegex.getText());
-        //this.graphics.setJTextValidation(jTextValidate.getText());
-        this.cargarSimulacion(automata);
-        this.graphics.setVisible(true);
-        this.graphics.toFront();
-//        } else {
-//            this.graphics = new AutomataGrafico("jgraph", automata, this.conf);
-//            this.graphics.setAutomata(automata);
-//            this.graphics.setJTextAlphaString(jTextAlpha.getText());
-//            this.graphics.setJTextReGexString(jTextReGex.getText());
-//            this.graphics.setJTextValidation(jTextValidate.getText());
-//            this.cargarSimulacion(automata);
-//            this.graphics.setVisible(true);
-//            this.graphics.toFront();
-//        }
-    }
-
     private void habilitarAlpha() {
         txtAlfabeto.setEnabled(true);
     }
@@ -873,54 +806,17 @@ public class Main extends javax.swing.JFrame {
         txtAlfabeto.setEnabled(false);
     }
 
-    private void habilitarVistas() {
-//        this.viewAFNbtn.setEnabled(true);
-//        this.viewAFDMinbtn.setEnabled(true);
-//        this.viewAFDbtn.setEnabled(true);
-//        this.jComboBoxGraph.setEnabled(true);
-    }
-
-    private void bloquearVistas() {
-//        this.viewAFNbtn.setEnabled(false);
-//        this.viewAFDMinbtn.setEnabled(false);
-//        this.viewAFDbtn.setEnabled(false);
-//        this.jComboBoxGraph.setEnabled(false);
-    }
-
-    private void habilitarValidacion() {
-//        this.jTextValidate.setEnabled(true);
-//        this.validateBtn.setEnabled(true);
-//        this.jComboBoxValidation.setEnabled(true);
-    }
-
-    private void bloquearValidacion() {
-//        this.jTextValidate.setEnabled(false);
-//        this.validateBtn.setEnabled(false);
-//        this.jComboBoxValidation.setEnabled(false);
-//        this.afnSim = null;
-//        this.afdSim = null;
-//        this.afdMinSim = null;
-    }
-
-    private void habilitarDefaultAlpha() {
-        //useSelectedAlphaBtn.setEnabled(true);
-    }
-
-    private void bloquearDefaultAlpha() {
-        // useSelectedAlphaBtn.setEnabled(false);
-    }
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        java.awt.EventQueue.invokeLater(new Runnable() {
-
-            public void run() {
-                new Main().setVisible(true);
-            }
-        });
-    }
+//    /**
+//     * @param args the command line arguments
+//     */
+//    public static void main(String args[]) {
+//        java.awt.EventQueue.invokeLater(new Runnable() {
+//
+//            public void run() {
+//                new Main().setVisible(true);
+//            }
+//        });
+//    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancel;
     private javax.swing.JButton jButton1;

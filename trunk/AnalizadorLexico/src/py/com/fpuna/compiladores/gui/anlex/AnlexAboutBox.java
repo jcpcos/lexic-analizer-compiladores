@@ -9,7 +9,7 @@ import org.jdesktop.application.Action;
 public class AnlexAboutBox extends javax.swing.JDialog {
 
     public AnlexAboutBox(java.awt.Frame parent) {
-        super(parent);
+       // super(parent);
         initComponents();
         getRootPane().setDefaultButton(closeButton);
     }
@@ -36,6 +36,7 @@ public class AnlexAboutBox extends javax.swing.JDialog {
         javax.swing.JLabel appHomepageLabel = new javax.swing.JLabel();
         javax.swing.JLabel appDescLabel = new javax.swing.JLabel();
         javax.swing.JLabel imageLabel = new javax.swing.JLabel();
+        jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         org.jdesktop.application.ResourceMap resourceMap = org.jdesktop.application.Application.getInstance().getContext().getResourceMap(AnlexAboutBox.class);
@@ -52,18 +53,21 @@ public class AnlexAboutBox extends javax.swing.JDialog {
         appTitleLabel.setName("appTitleLabel"); // NOI18N
 
         versionLabel.setFont(versionLabel.getFont().deriveFont(versionLabel.getFont().getStyle() | java.awt.Font.BOLD));
+        versionLabel.setForeground(resourceMap.getColor("versionLabel.foreground")); // NOI18N
         versionLabel.setText(resourceMap.getString("versionLabel.text")); // NOI18N
         versionLabel.setName("versionLabel"); // NOI18N
 
         appVersionLabel.setName("appVersionLabel"); // NOI18N
 
         vendorLabel.setFont(vendorLabel.getFont().deriveFont(vendorLabel.getFont().getStyle() | java.awt.Font.BOLD));
+        vendorLabel.setForeground(resourceMap.getColor("vendorLabel.foreground")); // NOI18N
         vendorLabel.setText(resourceMap.getString("vendorLabel.text")); // NOI18N
         vendorLabel.setName("vendorLabel"); // NOI18N
 
         appVendorLabel.setName("appVendorLabel"); // NOI18N
 
         homepageLabel.setFont(homepageLabel.getFont().deriveFont(homepageLabel.getFont().getStyle() | java.awt.Font.BOLD));
+        homepageLabel.setForeground(resourceMap.getColor("homepageLabel.foreground")); // NOI18N
         homepageLabel.setText(resourceMap.getString("homepageLabel.text")); // NOI18N
         homepageLabel.setName("homepageLabel"); // NOI18N
 
@@ -75,6 +79,12 @@ public class AnlexAboutBox extends javax.swing.JDialog {
         imageLabel.setIcon(resourceMap.getIcon("imageLabel.icon")); // NOI18N
         imageLabel.setName("imageLabel"); // NOI18N
 
+        jLabel1.setBackground(resourceMap.getColor("jLabel1.background")); // NOI18N
+        jLabel1.setFont(resourceMap.getFont("jLabel1.font")); // NOI18N
+        jLabel1.setForeground(resourceMap.getColor("jLabel1.foreground")); // NOI18N
+        jLabel1.setText(resourceMap.getString("jLabel1.text")); // NOI18N
+        jLabel1.setName("jLabel1"); // NOI18N
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -82,46 +92,57 @@ public class AnlexAboutBox extends javax.swing.JDialog {
             .addGroup(layout.createSequentialGroup()
                 .addComponent(imageLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 248, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(versionLabel)
-                            .addComponent(vendorLabel)
-                            .addComponent(homepageLabel))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(appVersionLabel)
-                            .addComponent(appVendorLabel)
-                            .addComponent(appHomepageLabel)))
-                    .addComponent(appTitleLabel, javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(appDescLabel, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 250, Short.MAX_VALUE)
-                    .addComponent(closeButton))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(versionLabel)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(appVersionLabel)
+                                    .addComponent(appVendorLabel)
+                                    .addComponent(appHomepageLabel))
+                                .addGap(33, 33, 33))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(appTitleLabel)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 194, Short.MAX_VALUE))
+                            .addComponent(appDescLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 194, Short.MAX_VALUE))
+                        .addGap(24, 24, 24)
+                        .addComponent(jLabel1))
+                    .addComponent(closeButton, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(vendorLabel)
+                    .addComponent(homepageLabel))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(imageLabel, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 263, Short.MAX_VALUE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(appTitleLabel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(appDescLabel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(versionLabel)
-                            .addComponent(appVersionLabel))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(vendorLabel)
-                            .addComponent(appVendorLabel))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(homepageLabel)
-                            .addComponent(appHomepageLabel))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 147, Short.MAX_VALUE)
-                        .addComponent(closeButton)))
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(imageLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 262, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(appTitleLabel)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(appDescLabel)
+                                .addGap(27, 27, 27)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(appVersionLabel)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(appVendorLabel)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(appHomepageLabel))
+                                    .addComponent(versionLabel))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(vendorLabel))
+                            .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(homepageLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 82, Short.MAX_VALUE)
+                        .addComponent(closeButton)
+                        .addGap(31, 31, 31)))
                 .addContainerGap())
         );
 
@@ -130,6 +151,7 @@ public class AnlexAboutBox extends javax.swing.JDialog {
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton closeButton;
+    private javax.swing.JLabel jLabel1;
     // End of variables declaration//GEN-END:variables
     
 }
