@@ -38,20 +38,17 @@ public class DibujoAutomata extends javax.swing.JFrame {
     }
     private Thompson automata;
     private AutomataGraph jgraph;
+    private boolean enSimulacion = false;
     DefaultGraphCell[] cells;
     private JLabel imageLabel;
-    private Simulacion simulacion;
-    private boolean simulacionResult;
     private String imgDir = "/tmp";
     private String imgUrl;
-    private boolean enSimulacion = false;
     private Estado EstadoActual;
     private int IndexActual;
     private String CaracterActual = "";
     private Estado EstadoSiguiente;
     private ArrayList<File> fileList;
     private File imagenOriginal;
-    private boolean CargarOriginal = true;
     private boolean HayArchivos = false;
     private boolean primeraVez = true;
 
@@ -68,10 +65,6 @@ public class DibujoAutomata extends javax.swing.JFrame {
 
         initComponents();
         this.cargarAutomataGraphViz();
-    }
-
-    void setSimulacionResult(boolean simResult) {
-        this.simulacionResult = simResult;
     }
 
     private String generateImageUrl() {
@@ -233,7 +226,6 @@ public class DibujoAutomata extends javax.swing.JFrame {
 
         for (Estado e : estados) {
             boolean mark = false;
-
             if (this.enSimulacion) {
                 mark = (e.getId() == this.EstadoActual.getId());
 
@@ -243,7 +235,6 @@ public class DibujoAutomata extends javax.swing.JFrame {
             }
 
             String EstadoStyle = this.getColorEstado(e, mark);
-
             result_nodes += "\t" + e.getId() + " " + EstadoStyle + "\n";
 
             for (Enlace enlace : e.getEnlaces()) {
@@ -255,10 +246,8 @@ public class DibujoAutomata extends javax.swing.JFrame {
                 mark = ((label.compareTo(this.CaracterActual) == 0) && (orig.getId() == this.EstadoActual.getId()));
 
                 String EnlaceStyle = this.getEnlaceStyle(enlace, label, mark);
-
                 result_edges += "\t" + orig.getId() + " -> " + dest.getId()
                         + " " + EnlaceStyle + "\n";
-
             }
         }
         String result = result_header + result_nodes + result_edges + "}";
@@ -311,7 +300,7 @@ public class DibujoAutomata extends javax.swing.JFrame {
         jTextAlpha.setEditable(false);
         jTextAlpha.setName("jTextAlpha"); // NOI18N
 
-        jLabel2.setText("Expresión Regular:");
+        jLabel2.setText("Expresiï¿½n Regular:");
         jLabel2.setName("jLabel2"); // NOI18N
 
         jLabel3.setText("Alfabeto:");
@@ -390,14 +379,6 @@ public class DibujoAutomata extends javax.swing.JFrame {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
         this.setVisible(false);
-
-        /* File imageIcon = new File(this.imgUrl);
-        if (this.library.compareTo("graphviz")==0 && imageIcon.exists()) {
-        if (imageIcon.exists()) {
-        imageIcon.delete();
-        }
-        }    */
-
         this.borrarArchivos(true);
         this.dispose();
     }//GEN-LAST:event_jButton1ActionPerformed

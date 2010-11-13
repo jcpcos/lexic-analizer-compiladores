@@ -16,7 +16,7 @@ public class AnlexApp extends SingleFrameApplication {
      * At startup create and show the main frame of the application.
      */
     @Override protected void startup() {
-        show(new AnlexView(this));
+        show(new Main());
     }
 
     /**
