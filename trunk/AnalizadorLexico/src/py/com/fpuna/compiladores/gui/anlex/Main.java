@@ -12,6 +12,8 @@ package py.com.fpuna.compiladores.gui.anlex;
 
 import java.awt.Color;
 import java.awt.Font;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import py.com.fpuna.compiladores.analizadorlexico.Analizador;
@@ -31,9 +33,9 @@ public class Main extends javax.swing.JFrame {
     /** Creates new form Main */
     public Main() {
         initComponents();
-        jLabel2.setText(""); // el label de errores se limpia al iniciar
-        jLabel2.setEnabled(false);
-        labelErrores.setText("");
+//        jLabel2.setText(""); // el label de errores se limpia al iniciar
+//        jLabel2.setEnabled(false);
+//        labelErrores.setText("");
         txtAlfabeto.setText("ab");
         txtRegex.setText("(a|b)*");
     }
@@ -47,6 +49,7 @@ public class Main extends javax.swing.JFrame {
     private boolean afnSimResult;
     private boolean afdSimResult;
     private boolean afdMinSimResult;
+    private JDialog about;
 
     /** This method is called from within the constructor to
      * initialize the form.
@@ -69,10 +72,10 @@ public class Main extends javax.swing.JFrame {
         txtAlfabeto = new javax.swing.JTextField();
         procesar = new javax.swing.JButton();
         cancel = new javax.swing.JButton();
+        jPanel4 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         txtMensajes = new javax.swing.JTextArea();
-        jLabel2 = new javax.swing.JLabel();
-        labelErrores = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
         jPanel3 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
         jPanel6 = new javax.swing.JPanel();
@@ -93,6 +96,7 @@ public class Main extends javax.swing.JFrame {
         jMenuItem2 = new javax.swing.JMenuItem();
         jMenuItem1 = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
+        jMenuItem3 = new javax.swing.JMenuItem();
 
         jPopupMenu1.setName("jPopupMenu1"); // NOI18N
 
@@ -124,6 +128,11 @@ public class Main extends javax.swing.JFrame {
 
         txtRegex.setName("txtRegex"); // NOI18N
         txtRegex.setNextFocusableComponent(procesar);
+        txtRegex.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtRegexKeyReleased(evt);
+            }
+        });
 
         lblRegexHelp1.setForeground(resourceMap.getColor("lblRegexHelp1.foreground")); // NOI18N
         lblRegexHelp1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -137,8 +146,8 @@ public class Main extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlRegexLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pnlRegexLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(lblRegexHelp1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 305, Short.MAX_VALUE)
-                    .addComponent(txtRegex, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 305, Short.MAX_VALUE))
+                    .addComponent(lblRegexHelp1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(txtRegex, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 208, Short.MAX_VALUE))
                 .addContainerGap())
         );
         pnlRegexLayout.setVerticalGroup(
@@ -158,6 +167,11 @@ public class Main extends javax.swing.JFrame {
         txtAlfabeto.setFocusCycleRoot(true);
         txtAlfabeto.setName("txtAlfabeto"); // NOI18N
         txtAlfabeto.setNextFocusableComponent(txtRegex);
+        txtAlfabeto.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtAlfabetoKeyReleased(evt);
+            }
+        });
 
         javax.swing.GroupLayout pnlAlfabetoLayout = new javax.swing.GroupLayout(pnlAlfabeto);
         pnlAlfabeto.setLayout(pnlAlfabetoLayout);
@@ -165,7 +179,7 @@ public class Main extends javax.swing.JFrame {
             pnlAlfabetoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlAlfabetoLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(txtAlfabeto, javax.swing.GroupLayout.DEFAULT_SIZE, 305, Short.MAX_VALUE)
+                .addComponent(txtAlfabeto, javax.swing.GroupLayout.DEFAULT_SIZE, 208, Short.MAX_VALUE)
                 .addContainerGap())
         );
         pnlAlfabetoLayout.setVerticalGroup(
@@ -176,7 +190,9 @@ public class Main extends javax.swing.JFrame {
                 .addContainerGap(27, Short.MAX_VALUE))
         );
 
+        procesar.setIcon(resourceMap.getIcon("procesar.icon")); // NOI18N
         procesar.setText(resourceMap.getString("procesar.text")); // NOI18N
+        procesar.setEnabled(false);
         procesar.setName("procesar"); // NOI18N
         procesar.setNextFocusableComponent(cancel);
         procesar.addActionListener(new java.awt.event.ActionListener() {
@@ -185,6 +201,7 @@ public class Main extends javax.swing.JFrame {
             }
         });
 
+        cancel.setIcon(resourceMap.getIcon("cancel.icon")); // NOI18N
         cancel.setText(resourceMap.getString("cancel.text")); // NOI18N
         cancel.setName("cancel"); // NOI18N
         cancel.setNextFocusableComponent(jTabbedPane1);
@@ -194,6 +211,9 @@ public class Main extends javax.swing.JFrame {
             }
         });
 
+        jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder(resourceMap.getString("jPanel4.border.title"))); // NOI18N
+        jPanel4.setName("jPanel4"); // NOI18N
+
         jScrollPane1.setName("jScrollPane1"); // NOI18N
 
         txtMensajes.setColumns(20);
@@ -202,11 +222,32 @@ public class Main extends javax.swing.JFrame {
         txtMensajes.setName("txtMensajes"); // NOI18N
         jScrollPane1.setViewportView(txtMensajes);
 
-        jLabel2.setText(resourceMap.getString("jLabel2.text")); // NOI18N
-        jLabel2.setName("jLabel2"); // NOI18N
+        jButton1.setIcon(resourceMap.getIcon("jButton1.icon")); // NOI18N
+        jButton1.setText(resourceMap.getString("jButton1.text")); // NOI18N
+        jButton1.setName("jButton1"); // NOI18N
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
-        labelErrores.setText(resourceMap.getString("labelErrores.text")); // NOI18N
-        labelErrores.setName("labelErrores"); // NOI18N
+        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
+        jPanel4.setLayout(jPanel4Layout);
+        jPanel4Layout.setHorizontalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 291, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addGap(12, 12, 12)
+                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 151, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+        jPanel4Layout.setVerticalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 189, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(13, Short.MAX_VALUE))
+        );
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -215,51 +256,41 @@ public class Main extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(172, 172, 172)
-                        .addComponent(procesar, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(cancel))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGap(33, 33, 33)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(pnlAlfabeto, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(pnlRegex, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addGap(18, 18, 18))
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGap(77, 77, 77)
-                                .addComponent(lblMensaje)
-                                .addGap(55, 55, 55)))
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(labelErrores)
-                            .addComponent(jLabel2)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 291, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap())
+                        .addGap(33, 33, 33)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(pnlAlfabeto, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(pnlRegex, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(78, 78, 78))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(77, 77, 77)
+                        .addComponent(lblMensaje)))
+                .addGap(18, 18, 18)
+                .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(38, 38, 38))
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(33, 33, 33)
+                .addComponent(procesar, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(cancel, javax.swing.GroupLayout.PREFERRED_SIZE, 129, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(409, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblMensaje, javax.swing.GroupLayout.PREFERRED_SIZE, 15, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(labelErrores))
-                .addGap(18, 18, 18)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel1Layout.createSequentialGroup()
-                        .addGap(23, 23, 23)
-                        .addComponent(jLabel2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 191, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel1Layout.createSequentialGroup()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(lblMensaje, javax.swing.GroupLayout.PREFERRED_SIZE, 15, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
                         .addComponent(pnlAlfabeto, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(31, 31, 31)
-                        .addComponent(pnlRegex, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(18, 18, 18)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(procesar)
-                    .addComponent(cancel))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(pnlRegex, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(procesar, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(cancel, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addGap(20, 20, 20))
         );
 
         jTabbedPane1.addTab(resourceMap.getString("jPanel1.TabConstraints.tabTitle"), jPanel1); // NOI18N
@@ -358,7 +389,6 @@ public class Main extends javax.swing.JFrame {
         });
 
         viewAFDbtn.setText(resourceMap.getString("viewAFDbtn.text")); // NOI18N
-        viewAFDbtn.setEnabled(false);
         viewAFDbtn.setName("viewAFDbtn"); // NOI18N
         viewAFDbtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -367,7 +397,6 @@ public class Main extends javax.swing.JFrame {
         });
 
         viewAFDMinbtn.setText(resourceMap.getString("viewAFDMinbtn.text")); // NOI18N
-        viewAFDMinbtn.setEnabled(false);
         viewAFDMinbtn.setName("viewAFDMinbtn"); // NOI18N
         viewAFDMinbtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -408,7 +437,7 @@ public class Main extends javax.swing.JFrame {
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(113, Short.MAX_VALUE))
+                .addContainerGap(132, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -447,8 +476,14 @@ public class Main extends javax.swing.JFrame {
 
         jMenu1.setText(resourceMap.getString("jMenu1.text")); // NOI18N
         jMenu1.setName("jMenu1"); // NOI18N
+        jMenu1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenu1ActionPerformed(evt);
+            }
+        });
 
         jMenuItem2.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem2.setIcon(resourceMap.getIcon("jMenuItem2.icon")); // NOI18N
         jMenuItem2.setText(resourceMap.getString("jMenuItem2.text")); // NOI18N
         jMenuItem2.setName("jMenuItem2"); // NOI18N
         jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
@@ -459,6 +494,7 @@ public class Main extends javax.swing.JFrame {
         jMenu1.add(jMenuItem2);
 
         jMenuItem1.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Q, java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem1.setIcon(resourceMap.getIcon("jMenuItem1.icon")); // NOI18N
         jMenuItem1.setText(resourceMap.getString("jMenuItem1.text")); // NOI18N
         jMenuItem1.setName("jMenuItem1"); // NOI18N
         jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
@@ -472,6 +508,18 @@ public class Main extends javax.swing.JFrame {
 
         jMenu2.setText(resourceMap.getString("jMenu2.text")); // NOI18N
         jMenu2.setName("jMenu2"); // NOI18N
+
+        jMenuItem3.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_H, java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem3.setIcon(resourceMap.getIcon("jMenuItem3.icon")); // NOI18N
+        jMenuItem3.setText(resourceMap.getString("jMenuItem3.text")); // NOI18N
+        jMenuItem3.setName("jMenuItem3"); // NOI18N
+        jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem3ActionPerformed(evt);
+            }
+        });
+        jMenu2.add(jMenuItem3);
+
         jMenuBar1.add(jMenu2);
 
         setJMenuBar(jMenuBar1);
@@ -480,29 +528,29 @@ public class Main extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(301, Short.MAX_VALUE)
-                .addComponent(lblAutores)
-                .addGap(268, 268, 268))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(75, 75, 75)
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 707, Short.MAX_VALUE)
-                .addGap(67, 67, 67))
             .addGroup(layout.createSequentialGroup()
-                .addGap(100, 100, 100)
+                .addGap(147, 147, 147)
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 347, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(402, Short.MAX_VALUE))
+                .addContainerGap(256, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 726, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+            .addGroup(layout.createSequentialGroup()
+                .addGap(211, 211, 211)
+                .addComponent(lblAutores)
+                .addContainerGap(259, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 22, Short.MAX_VALUE)
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 374, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(36, 36, 36)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 392, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
                 .addComponent(lblAutores)
-                .addContainerGap())
+                .addGap(21, 21, 21))
         );
 
         pack();
@@ -517,6 +565,10 @@ public class Main extends javax.swing.JFrame {
     private void procesarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_procesarActionPerformed
         // TODO add your handling code here:
         doLexicAnalisys();
+        viewAFDMinbtn.setEnabled(true);
+        viewAFNbtn.setEnabled(true);
+        viewAFDbtn.setEnabled(true);
+
 }//GEN-LAST:event_procesarActionPerformed
 
     private void viewAFNbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewAFNbtnActionPerformed
@@ -524,7 +576,7 @@ public class Main extends javax.swing.JFrame {
 }//GEN-LAST:event_viewAFNbtnActionPerformed
 
     private void viewAFDbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewAFDbtnActionPerformed
-        this.dibujarAutomata(this.afn);
+        this.dibujarAutomata(this.afd);
 }//GEN-LAST:event_viewAFDbtnActionPerformed
 
     private void viewAFDMinbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewAFDMinbtnActionPerformed
@@ -543,7 +595,51 @@ public class Main extends javax.swing.JFrame {
         this.bloquearRegExProcess();
         this.bloquearValidacion();
         this.bloquearVistas();
+        jTableAFN.setModel(new AutomataTable(null));
+        jTableAFD.setModel(new AutomataTable(null));
+        jTableAFDMin.setModel(new AutomataTable(null));
+        viewAFDMinbtn.setEnabled(false);
+        viewAFNbtn.setEnabled(false);
+        viewAFDbtn.setEnabled(false);
+        txtMensajes.setText("");
     }//GEN-LAST:event_jMenuItem2ActionPerformed
+
+    private void txtAlfabetoKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtAlfabetoKeyReleased
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtAlfabetoKeyReleased
+    public void checkRegEx() {
+        String regex = txtRegex.getText();
+        if (regex.compareTo("") != 0) {
+            this.habilitarRegExProcess();
+        } else {
+            this.bloquearRegExProcess();
+        }
+    }
+
+    private void txtRegexKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtRegexKeyReleased
+        // TODO add your handling code here:
+        this.checkRegEx();
+    }//GEN-LAST:event_txtRegexKeyReleased
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        txtMensajes.setText("");
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jMenu1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenu1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jMenu1ActionPerformed
+
+    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
+        // TODO add your handling code here:
+
+    if (about == null) {
+        about = new AnlexAboutBox(this);
+    }
+
+    about.setEnabled(true);
+    about.setVisible(true);
+    }//GEN-LAST:event_jMenuItem3ActionPerformed
 
     private void doLexicAnalisys() {
         String regExp = txtRegex.getText();
@@ -629,6 +725,7 @@ public class Main extends javax.swing.JFrame {
                         this.cargarTabla(jTableAFN, afn);
                         this.cargarTabla(jTableAFD, afd);
                         this.cargarTabla(jTableAFDMin, afdMin);
+
                     } catch (AutomataException ex) {
                         txtMensajes.append("# ERRORS: >> " + ex.getMessage() + "\n");
                         txtMensajes.append("\n");
@@ -826,16 +923,18 @@ public class Main extends javax.swing.JFrame {
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancel;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem2;
+    private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel7;
     private javax.swing.JPopupMenu jPopupMenu1;
@@ -848,7 +947,6 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JTable jTableAFD;
     private javax.swing.JTable jTableAFDMin;
     private javax.swing.JTable jTableAFN;
-    private javax.swing.JLabel labelErrores;
     private javax.swing.JLabel lblAutores;
     private javax.swing.JLabel lblMensaje;
     private javax.swing.JLabel lblRegexHelp1;
