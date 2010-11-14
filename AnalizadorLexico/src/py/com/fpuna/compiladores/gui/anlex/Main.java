@@ -39,6 +39,14 @@ public class Main extends javax.swing.JFrame {
         txtRegex.setText("(a|b)*");
     }
 
+    public ValidarCadena getValString() {
+        return valString;
+    }
+
+    public void setValString(ValidarCadena valString) {
+        this.valString = valString;
+    }
+
     public void cargarTabla(JTable Tabla, Thompson automata) {
         AutomataTable tmodel = new AutomataTable(automata);
         tmodel.arreglarObjetosNulos();
@@ -55,9 +63,16 @@ public class Main extends javax.swing.JFrame {
         }
     }
 
+    public boolean validarCadena() {
+        this.setValString(new ValidarCadena(this.jTextValidate.getText(), this.afn));
+        return this.getValString().validar();
+    }
+
     private Thompson afn, afd, afdMin;
     private DibujoAutomata dibujo;
     private JDialog about;
+    private boolean validationResult;
+    private ValidarCadena valString;
 
     /** This method is called from within the constructor to
      * initialize the form.
@@ -98,6 +113,13 @@ public class Main extends javax.swing.JFrame {
         viewAFNbtn = new javax.swing.JButton();
         viewAFDbtn = new javax.swing.JButton();
         viewAFDMinbtn = new javax.swing.JButton();
+        jPanel5 = new javax.swing.JPanel();
+        jTextValidate = new javax.swing.JTextField();
+        jTextValResult = new javax.swing.JTextField();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        jComboBoxValidation = new javax.swing.JComboBox();
+        validarBtn = new javax.swing.JButton();
         lblAutores = new javax.swing.JLabel();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
@@ -131,7 +153,7 @@ public class Main extends javax.swing.JFrame {
         lblMensaje.setText(resourceMap.getString("lblMensaje.text")); // NOI18N
         lblMensaje.setName("lblMensaje"); // NOI18N
 
-        pnlRegex.setBorder(javax.swing.BorderFactory.createTitledBorder(resourceMap.getString("pnlRegex.border.title"))); // NOI18N
+        pnlRegex.setBorder(javax.swing.BorderFactory.createTitledBorder(null, resourceMap.getString("pnlRegex.border.title"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, resourceMap.getFont("pnlRegex.border.titleFont"), resourceMap.getColor("pnlRegex.border.titleColor"))); // NOI18N
         pnlRegex.setName("pnlRegex"); // NOI18N
 
         txtRegex.setName("txtRegex"); // NOI18N
@@ -154,8 +176,8 @@ public class Main extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlRegexLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pnlRegexLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(lblRegexHelp1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(txtRegex, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 208, Short.MAX_VALUE))
+                    .addComponent(lblRegexHelp1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 216, Short.MAX_VALUE)
+                    .addComponent(txtRegex, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 216, Short.MAX_VALUE))
                 .addContainerGap())
         );
         pnlRegexLayout.setVerticalGroup(
@@ -168,7 +190,7 @@ public class Main extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        pnlAlfabeto.setBorder(javax.swing.BorderFactory.createTitledBorder(resourceMap.getString("pnlAlfabeto.border.title"))); // NOI18N
+        pnlAlfabeto.setBorder(javax.swing.BorderFactory.createTitledBorder(null, resourceMap.getString("pnlAlfabeto.border.title"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, resourceMap.getFont("pnlAlfabeto.border.titleFont"), resourceMap.getColor("pnlAlfabeto.border.titleColor"))); // NOI18N
         pnlAlfabeto.setName("pnlAlfabeto"); // NOI18N
 
         txtAlfabeto.setToolTipText(resourceMap.getString("txtAlfabeto.toolTipText")); // NOI18N
@@ -187,7 +209,7 @@ public class Main extends javax.swing.JFrame {
             pnlAlfabetoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlAlfabetoLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(txtAlfabeto, javax.swing.GroupLayout.DEFAULT_SIZE, 208, Short.MAX_VALUE)
+                .addComponent(txtAlfabeto, javax.swing.GroupLayout.DEFAULT_SIZE, 216, Short.MAX_VALUE)
                 .addContainerGap())
         );
         pnlAlfabetoLayout.setVerticalGroup(
@@ -219,7 +241,7 @@ public class Main extends javax.swing.JFrame {
             }
         });
 
-        jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder(resourceMap.getString("jPanel4.border.title"))); // NOI18N
+        jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder(null, resourceMap.getString("jPanel4.border.title"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, resourceMap.getFont("jPanel4.border.titleFont"), resourceMap.getColor("jPanel4.border.titleColor"))); // NOI18N
         jPanel4.setName("jPanel4"); // NOI18N
 
         jScrollPane1.setName("jScrollPane1"); // NOI18N
@@ -280,7 +302,7 @@ public class Main extends javax.swing.JFrame {
                 .addComponent(procesar, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(cancel, javax.swing.GroupLayout.PREFERRED_SIZE, 129, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(409, Short.MAX_VALUE))
+                .addContainerGap(417, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -381,11 +403,11 @@ public class Main extends javax.swing.JFrame {
             .addGroup(jPanel6Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jTabbedPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 116, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(20, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jPanel7.setBackground(resourceMap.getColor("jPanel7.background")); // NOI18N
-        jPanel7.setBorder(javax.swing.BorderFactory.createTitledBorder(null, resourceMap.getString("jPanel7.border.title"), javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.DEFAULT_POSITION)); // NOI18N
+        jPanel7.setBorder(javax.swing.BorderFactory.createTitledBorder(null, resourceMap.getString("jPanel7.border.title"), javax.swing.border.TitledBorder.LEFT, javax.swing.border.TitledBorder.DEFAULT_POSITION, resourceMap.getFont("jPanel7.border.titleFont"), resourceMap.getColor("jPanel7.border.titleColor"))); // NOI18N
         jPanel7.setName("jPanel7"); // NOI18N
 
         viewAFNbtn.setText(resourceMap.getString("viewAFNbtn.text")); // NOI18N
@@ -419,9 +441,9 @@ public class Main extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(viewAFNbtn, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(viewAFDbtn, javax.swing.GroupLayout.DEFAULT_SIZE, 63, Short.MAX_VALUE)
                 .addGap(18, 18, 18)
+                .addComponent(viewAFDbtn, javax.swing.GroupLayout.DEFAULT_SIZE, 63, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(viewAFDMinbtn)
                 .addContainerGap())
         );
@@ -430,10 +452,84 @@ public class Main extends javax.swing.JFrame {
             .addGroup(jPanel7Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(viewAFDMinbtn)
                     .addComponent(viewAFDbtn)
-                    .addComponent(viewAFNbtn))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(viewAFNbtn)
+                    .addComponent(viewAFDMinbtn))
+                .addContainerGap(26, Short.MAX_VALUE))
+        );
+
+        jPanel5.setBorder(javax.swing.BorderFactory.createTitledBorder(null, resourceMap.getString("jPanel5.border.title"), javax.swing.border.TitledBorder.LEFT, javax.swing.border.TitledBorder.TOP, resourceMap.getFont("jPanel5.border.titleFont"), resourceMap.getColor("jPanel5.border.titleColor"))); // NOI18N
+        jPanel5.setForeground(resourceMap.getColor("jPanel5.foreground")); // NOI18N
+        jPanel5.setToolTipText(resourceMap.getString("jPanel5.toolTipText")); // NOI18N
+        jPanel5.setName("jPanel5"); // NOI18N
+
+        jTextValidate.setEnabled(false);
+        jTextValidate.setName("jTextValidate"); // NOI18N
+
+        jTextValResult.setBackground(resourceMap.getColor("jTextValResult.background")); // NOI18N
+        jTextValResult.setEditable(false);
+        jTextValResult.setFont(resourceMap.getFont("jTextValResult.font")); // NOI18N
+        jTextValResult.setName("jTextValResult"); // NOI18N
+
+        jLabel2.setText(resourceMap.getString("jLabel2.text")); // NOI18N
+        jLabel2.setName("jLabel2"); // NOI18N
+
+        jLabel3.setText(resourceMap.getString("jLabel3.text")); // NOI18N
+        jLabel3.setName("jLabel3"); // NOI18N
+
+        jComboBoxValidation.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "AFN", "AFD", "AFD Mínimo" }));
+        jComboBoxValidation.setToolTipText(resourceMap.getString("jComboBoxValidation.toolTipText")); // NOI18N
+        jComboBoxValidation.setEnabled(false);
+        jComboBoxValidation.setName("jComboBoxValidation"); // NOI18N
+
+        validarBtn.setText(resourceMap.getString("validarBtn.text")); // NOI18N
+        validarBtn.setName("validarBtn"); // NOI18N
+        validarBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                validarBtnActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
+        jPanel5.setLayout(jPanel5Layout);
+        jPanel5Layout.setHorizontalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addComponent(jLabel2)
+                        .addContainerGap(348, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
+                        .addComponent(jComboBoxValidation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(39, 39, 39)
+                        .addComponent(validarBtn)
+                        .addGap(63, 63, 63))
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addComponent(jLabel3)
+                        .addContainerGap(334, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
+                        .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jTextValidate, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 395, Short.MAX_VALUE)
+                            .addComponent(jTextValResult, javax.swing.GroupLayout.DEFAULT_SIZE, 395, Short.MAX_VALUE))
+                        .addGap(2, 2, 2))))
+        );
+        jPanel5Layout.setVerticalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 7, Short.MAX_VALUE)
+                .addComponent(jTextValidate, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addGap(33, 33, 33)
+                        .addComponent(jLabel3))
+                    .addComponent(validarBtn)
+                    .addComponent(jComboBoxValidation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jTextValResult, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
@@ -441,19 +537,26 @@ public class Main extends javax.swing.JFrame {
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(132, Short.MAX_VALUE))
+                .addGap(73, 73, 73)
+                .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(79, Short.MAX_VALUE))
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 27, Short.MAX_VALUE)
+                .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(54, 54, 54)
-                .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(67, Short.MAX_VALUE))
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addGap(23, 23, 23)
+                        .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addGap(57, 57, 57)
+                        .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(36, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
@@ -541,13 +644,13 @@ public class Main extends javax.swing.JFrame {
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 347, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(256, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(236, Short.MAX_VALUE)
+                .addComponent(lblAutores)
+                .addGap(234, 234, 234))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 726, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
-            .addGroup(layout.createSequentialGroup()
-                .addGap(211, 211, 211)
-                .addComponent(lblAutores)
-                .addContainerGap(259, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -555,10 +658,10 @@ public class Main extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 392, Short.MAX_VALUE)
-                .addGap(18, 18, 18)
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 407, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(lblAutores)
-                .addGap(21, 21, 21))
+                .addContainerGap())
         );
 
         pack();
@@ -643,6 +746,21 @@ public class Main extends javax.swing.JFrame {
     about.setVisible(true);
     }//GEN-LAST:event_jMenuItem3ActionPerformed
 
+    private void validarBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_validarBtnActionPerformed
+        // TODO add your handling code here:
+        switch(this.jComboBoxValidation.getSelectedIndex()) {
+            case 2: this.validationResult = this.validarCadena();
+                this.textResultadoValidacion(this.validationResult);
+                break;
+            case 3: this.validationResult = this.validarCadena();
+                this.textResultadoValidacion(this.validationResult);
+                break;
+            default:
+                this.validationResult = this.validarCadena();
+                this.textResultadoValidacion(this.validationResult);
+        }
+    }//GEN-LAST:event_validarBtnActionPerformed
+
     private void doLexicAnalisys() {
         String regExp = txtRegex.getText();
         String alfabeto = txtAlfabeto.getText();
@@ -650,11 +768,11 @@ public class Main extends javax.swing.JFrame {
 
         // Check entries
         if (regExp.compareTo("") == 0) {
-            txtMensajes.append(">> No se introdujo ninguna expresion regular\n");
+            txtMensajes.append(">> No se introdujo ninguna expresión regular\n");
             txtMensajes.append("\n");
             Errors = true;
         } else if (alfabeto.compareTo("") == 0) {
-            txtMensajes.append(">> No se introdujo ningun alfabeto\n");
+            txtMensajes.append(">> No se introdujo ningún alfabeto\n");
             txtMensajes.append("\n");
             Errors = true;
         } else {
@@ -679,7 +797,7 @@ public class Main extends javax.swing.JFrame {
                 txtMensajes.append("\n");
             } else {
 
-                txtMensajes.append(">> AFN Generado con exito!\n");
+                txtMensajes.append(">> AFN Generado con éxito!\n");
 
                 // 2. Generar el AFD
                 txtMensajes.append("# Generando el AFD...\n");
@@ -710,7 +828,7 @@ public class Main extends javax.swing.JFrame {
 
                 if (!Errors) { //cargar las tablas
                     try {
-                        txtMensajes.append(">> AFD Generado con exito!\n");
+                        txtMensajes.append(">> AFD Generado con éxito!\n");
 
                         // 3. Generar el AFDMínimo
                         txtMensajes.append("# Generando el AFD Minimo...\n");
@@ -722,7 +840,7 @@ public class Main extends javax.swing.JFrame {
                         this.afdMin.setAlpha(this.afn.getAlpha());
                         this.afdMin.setRegex(this.txtRegex.getText());
                         this.afdMin.tipoAutomata = TipoAutomata.AFDMin.ordinal();
-                        txtMensajes.append(">> AFDmin Generado con exito!\n");
+                        txtMensajes.append(">> AFDmin Generado con éxito!\n");
                         
                         // 4. Cargar las tablas del tab de Transiciones
                         this.cargarTabla(jTableAFN, afn);
@@ -769,42 +887,42 @@ public class Main extends javax.swing.JFrame {
     }
 
     private void bloquearControles() {
-        this.bloquearRegEx();
+        this.txtRegex.setEnabled(false);
         this.bloquearRegExProcess();
-        this.bloqearAlpha();
+        txtAlfabeto.setEnabled(false);
     }
 
     private void habilitarControles() {
-        this.habilitarRegEx();
-        this.habilitarRegExProcess();
-        this.habilitarAlpha();
-    }
-
-    private void habilitarRegEx() {
         this.txtRegex.setEnabled(true);
+        this.habilitarRegExProcess();
+        txtAlfabeto.setEnabled(true);
+        this.jTextValidate.setEnabled(true);
+        this.validarBtn.setEnabled(true);
+        this.jComboBoxValidation.setEnabled(true);
     }
 
-    private void bloquearRegEx() {
-        this.txtRegex.setEnabled(false);
+    private void textResultadoValidacion(boolean SimResult) {
+
+        Color incorrecto = Color.red;
+        Color correcto   = Color.green;
+
+        if (SimResult) {
+            this.jTextValResult.setText("La cadena pertenece al lenguaje");
+            this.jTextValResult.setForeground(correcto);
+        } else {
+            this.jTextValResult.setText("La cadena NO pertenece al lenguaje");
+            this.jTextValResult.setForeground(incorrecto);
+        }
     }
 
     private void habilitarRegExProcess() {
         this.procesar.setEnabled(true);
-        //this.jMenuItemProcesarReGex.setEnabled(true);
     }
 
     private void bloquearRegExProcess() {
         this.procesar.setEnabled(false);
-        //this.jMenuItemProcesarReGex.setEnabled(false);
     }
-
-    private void habilitarAlpha() {
-        txtAlfabeto.setEnabled(true);
-    }
-
-    private void bloqearAlpha() {
-        txtAlfabeto.setEnabled(false);
-    }
+    
 
 //    /**
 //     * @param args the command line arguments
@@ -820,7 +938,10 @@ public class Main extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancel;
     private javax.swing.JButton jButton1;
+    private javax.swing.JComboBox jComboBoxValidation;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
@@ -831,6 +952,7 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel7;
     private javax.swing.JPopupMenu jPopupMenu1;
@@ -843,6 +965,8 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JTable jTableAFD;
     private javax.swing.JTable jTableAFDMin;
     private javax.swing.JTable jTableAFN;
+    private javax.swing.JTextField jTextValResult;
+    private javax.swing.JTextField jTextValidate;
     private javax.swing.JLabel lblAutores;
     private javax.swing.JLabel lblMensaje;
     private javax.swing.JLabel lblRegexHelp1;
@@ -852,6 +976,7 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JTextField txtAlfabeto;
     private javax.swing.JTextArea txtMensajes;
     private javax.swing.JTextField txtRegex;
+    private javax.swing.JButton validarBtn;
     private javax.swing.JButton viewAFDMinbtn;
     private javax.swing.JButton viewAFDbtn;
     private javax.swing.JButton viewAFNbtn;
