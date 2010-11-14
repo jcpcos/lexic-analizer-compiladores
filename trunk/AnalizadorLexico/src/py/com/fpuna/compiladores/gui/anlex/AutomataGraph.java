@@ -29,9 +29,6 @@ import py.com.fpuna.compiladores.analizadorlexico.automata.ListaEstados;
 
 /**
  * Representacion del Grafo usando la definicion jgraph.
- * 
- * @author Cristhian Parra ({@link cdparra@gmail.com})
- * @author Fernando Mancía ({@link fernandomancia@gmail.com})
  */
 public class AutomataGraph extends JGraph{
 

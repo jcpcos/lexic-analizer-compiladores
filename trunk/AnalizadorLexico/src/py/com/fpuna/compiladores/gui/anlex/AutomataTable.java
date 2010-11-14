@@ -13,9 +13,6 @@ import py.com.fpuna.compiladores.analizadorlexico.automata.ListaEstados;
 /**
  * Tabla de Transiciones de un automata ajustado para ser utilizado como el 
  * modelo de un componente Jtable
- * 
- * @author Cristhian Parra ({@link cdparra@gmail.com})
- * @author Fernando Mancía ({@link fernandomancia@gmail.com})
  */
 public class AutomataTable extends AbstractTableModel {
 
