@@ -7,7 +7,6 @@ package py.com.fpuna.compiladores.gui.anlex;
 
 import java.util.ArrayList;
 import java.util.Stack;
-import py.com.fpuna.compiladores.analizadorlexico.Automata;
 import py.com.fpuna.compiladores.analizadorlexico.Automata.TipoAutomata;
 import py.com.fpuna.compiladores.analizadorlexico.Token;
 import py.com.fpuna.compiladores.analizadorlexico.algoritmos.Subconjunto;
@@ -46,44 +45,6 @@ public class ValidarCadena {
         this.estadosAnt  = new Stack<Estado>();
         this.estadosNew  = new Stack<Estado>();
 
-        /* Deprecated
-        for (boolean b : this.yaEstaEn) {
-            b = false;
-        }*/
-    }
-
-    public Estado getEstadoFinal() {
-        Estado result = null;
-
-        if (this.automata.tipoAutomata == TipoAutomata.AFN.ordinal()) {
-            // @TODO
-        } else {
-            if (estadosPath != null) {
-                int cantidad = estadosPath.size();
-                if (cantidad > 0) {
-                    result = estadosPath.get(cantidad-1);
-                }
-            }
-        }
-
-        return result;
-    }
-
-    public Estado getEstadoPreFinal() {
-        Estado result = null;
-
-        if (this.automata.tipoAutomata == TipoAutomata.AFN.ordinal()) {
-            // @TODO
-        } else {
-            if (estadosPath != null) {
-                int cantidad = estadosPath.size();
-                if (cantidad > 1) {
-                    result = estadosPath.get(cantidad-2);
-                }
-            }
-        }
-
-        return result;
     }
 
 
@@ -105,20 +66,6 @@ public class ValidarCadena {
         return exito;
     }
 
-    private void agregarEstado(Estado s) {
-        this.estadosNew.push(s);
-        this.yaEstaEn[s.getId()] = true;
-
-        this.enlacesVacios = s.getEnlacesVacios(); // equivale a mover[s,(vacio)]
-
-        for (Enlace e : this.enlacesVacios) {
-            Estado t = e.getDestino();
-            if (!this.yaEstaEn(t)) {
-                this.agregarEstado(t);
-            }
-        }
-    }
-
     private boolean contieneFinal(ListaEstados S) {
         boolean exito = false;
         for (Estado e : S ) {
@@ -129,45 +76,6 @@ public class ValidarCadena {
         }
         return exito;
     }
-
-    private Estado validar_AFN_Backtracking(Estado current_state) {
-
-        String current = this.currentCar();
-        Estado result = current_state;
-
-        Enlace path = current_state.getEnlaceSimboloFromHash(current);
-
-        // Si no hay ningún enlace al símbolo, buscamos algún vacío.
-        // Solo se aplica a los AFNs
-        if (path == null && this.automata.tipoAutomata == TipoAutomata.AFN.ordinal()) {
-            ArrayList<Enlace> emptys = current_state.getEnlacesVacios();
-
-            for (Enlace enlace : emptys) {
-                Estado siguiente = enlace.getDestino();
-
-                // se inserta el estado a seguir en el camino de validacion
-                int indexEstado = this.estadosPath.cantidad();
-                this.estadosPath.add(siguiente);
-                result = this.validar_AFN_Backtracking(siguiente);
-
-                if (result != null) {
-                    break;
-                }
-                this.estadosPath.remove(indexEstado);
-            }
-        } else {  // se encontró un enlace seguir por el símbolo y avanzamos
-
-            Estado siguiente = path.getDestino();
-
-            this.estadosPath.add(siguiente);
-            this.sigCar();
-
-            result = this.validar_AFN_Backtracking(siguiente);
-        }
-
-        return result;
-    }
-
 
     private boolean validar_AFN() {
         boolean exito = true;
@@ -242,12 +150,6 @@ public class ValidarCadena {
         return siguiente;
     }
 
-    private String currentCar() {
-        String siguiente = this.validationString.charAt(this.currentIndex)+"";
-        return siguiente;
-    }
-
-
     public String getValidationString() {
         return validationString;
     }
@@ -258,33 +160,4 @@ public class ValidarCadena {
         this.estadosPath = new ListaEstados();
     }
 
-    public ArrayList<ListaEstados> getEstadosPathAFN() {
-        return estadosPathAFN;
-    }
-
-    public ListaEstados getEstadosPath() {
-        return estadosPath;
-    }
-
-    public int getCurrentIndex() {
-        return currentIndex;
-    }
-
-    public
-
-    Automata getAutomata() {
-        return automata;
-    }
-
-    public void setAutomata(Thompson automata) {
-        this.automata = automata;
-    }
-
-    private boolean yaEstaEn(Estado t) {
-        return this.yaEstaEn[t.getId()];
-    }
-
-    public String getSimulationPath() {
-        return this.estadosPath.toString();
-    }
 }

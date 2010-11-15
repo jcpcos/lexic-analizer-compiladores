@@ -32,11 +32,10 @@ public class Main extends javax.swing.JFrame {
     /** Creates new form Main */
     public Main() {
         initComponents();
-//        jLabel2.setText(""); // el label de errores se limpia al iniciar
-//        jLabel2.setEnabled(false);
-//        labelErrores.setText("");
         txtAlfabeto.setText("ab");
         txtRegex.setText("(a|b)*");
+        procesar.setEnabled(true);
+        lockControl();
     }
 
     public ValidarCadena getValString() {
@@ -57,14 +56,14 @@ public class Main extends javax.swing.JFrame {
     public void checkRegEx() {
         String regex = txtRegex.getText();
         if (regex.compareTo("") != 0) {
-            this.habilitarRegExProcess();
+            this.procesar.setEnabled(true);
         } else {
-            this.bloquearRegExProcess();
+            this.procesar.setEnabled(false);
         }
     }
 
-    public boolean validarCadena() {
-        this.setValString(new ValidarCadena(this.jTextValidate.getText(), this.afn));
+    public boolean validarCadena(Thompson a) {
+        this.setValString(new ValidarCadena(this.jTextValidate.getText(), a));
         return this.getValString().validar();
     }
 
@@ -669,8 +668,10 @@ public class Main extends javax.swing.JFrame {
 
     private void cancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelActionPerformed
         // TODO add your handling code here:
-        txtAlfabeto.setText(null);
-        txtRegex.setText(null);
+        this.txtAlfabeto.setText(null);
+        this.txtRegex.setText(null);
+        this.procesar.setEnabled(false);
+        lockControl();
 }//GEN-LAST:event_cancelActionPerformed
 
     //action del button OK, se procesan las entradas
@@ -704,16 +705,10 @@ public class Main extends javax.swing.JFrame {
         // TODO add your handling code here:
         this.txtRegex.setText("");
         this.txtAlfabeto.setText("");
-        this.bloquearRegExProcess();
-        jTableAFN.setModel(new AutomataTable(null));
-        jTableAFD.setModel(new AutomataTable(null));
-        jTableAFDMin.setModel(new AutomataTable(null));
+        this.procesar.setEnabled(false);
 
-        //deshabilita los buttons de los dibujos
-        viewAFDMinbtn.setEnabled(false);
-        viewAFNbtn.setEnabled(false);
-        viewAFDbtn.setEnabled(false);
-        txtMensajes.setText("");
+        //deshabilita los buttons de los dibujos y de validación
+        lockControl();
     }//GEN-LAST:event_jMenuItem2ActionPerformed
 
     private void txtAlfabetoKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtAlfabetoKeyReleased
@@ -749,14 +744,14 @@ public class Main extends javax.swing.JFrame {
     private void validarBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_validarBtnActionPerformed
         // TODO add your handling code here:
         switch(this.jComboBoxValidation.getSelectedIndex()) {
-            case 2: this.validationResult = this.validarCadena();
+            case 2: this.validationResult = this.validarCadena(this.afd);
                 this.textResultadoValidacion(this.validationResult);
                 break;
-            case 3: this.validationResult = this.validarCadena();
+            case 3: this.validationResult = this.validarCadena(this.afdMin);
                 this.textResultadoValidacion(this.validationResult);
                 break;
             default:
-                this.validationResult = this.validarCadena();
+                this.validationResult = this.validarCadena(this.afn);
                 this.textResultadoValidacion(this.validationResult);
         }
     }//GEN-LAST:event_validarBtnActionPerformed
@@ -777,7 +772,9 @@ public class Main extends javax.swing.JFrame {
             Errors = true;
         } else {
 
-            bloquearControles();
+            this.txtRegex.setEnabled(false);
+            //this.procesar.setEnabled(false);
+            this.txtAlfabeto.setEnabled(false);
 
             // Procesar la expresión regular y Generar el AFN, el AFD y el AFDMínimos
             txtMensajes.append("# Generando el AFN...\n");
@@ -859,7 +856,7 @@ public class Main extends javax.swing.JFrame {
                 }
             }
 
-            this.habilitarControles();
+            this.enableControl();
 
         }
     }
@@ -886,16 +883,24 @@ public class Main extends javax.swing.JFrame {
         Tabla.getColumnModel().getColumn(0).setCellRenderer(cr);
     }
 
-    private void bloquearControles() {
-        this.txtRegex.setEnabled(false);
-        this.bloquearRegExProcess();
-        txtAlfabeto.setEnabled(false);
+    private void lockControl(){
+        viewAFDMinbtn.setEnabled(false);
+        viewAFNbtn.setEnabled(false);
+        viewAFDbtn.setEnabled(false);
+        validarBtn.setEnabled(false);
+        jComboBoxValidation.setEnabled(false);
+        jTextValidate.setEnabled(false);
+        
+        txtMensajes.setText("");        
+        jTableAFN.setModel(new AutomataTable(null));
+        jTableAFD.setModel(new AutomataTable(null));
+        jTableAFDMin.setModel(new AutomataTable(null));
     }
 
-    private void habilitarControles() {
+    private void enableControl() {
         this.txtRegex.setEnabled(true);
-        this.habilitarRegExProcess();
-        txtAlfabeto.setEnabled(true);
+        this.procesar.setEnabled(true);
+        this.txtAlfabeto.setEnabled(true);
         this.jTextValidate.setEnabled(true);
         this.validarBtn.setEnabled(true);
         this.jComboBoxValidation.setEnabled(true);
@@ -915,13 +920,6 @@ public class Main extends javax.swing.JFrame {
         }
     }
 
-    private void habilitarRegExProcess() {
-        this.procesar.setEnabled(true);
-    }
-
-    private void bloquearRegExProcess() {
-        this.procesar.setEnabled(false);
-    }
     
 
 //    /**
