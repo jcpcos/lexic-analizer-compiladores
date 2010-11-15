@@ -22,7 +22,7 @@ import javax.swing.JScrollPane;
 import org.jgraph.graph.DefaultGraphCell;
 import org.jgraph.graph.DefaultGraphModel;
 import py.com.fpuna.compiladores.analizadorlexico.algoritmos.Thompson;
-import py.com.fpuna.compiladores.analizadorlexico.automata.Enlace;
+import py.com.fpuna.compiladores.analizadorlexico.automata.Arco;
 import py.com.fpuna.compiladores.analizadorlexico.automata.Estado;
 import py.com.fpuna.compiladores.analizadorlexico.automata.ListaEstados;
 
@@ -178,7 +178,7 @@ public class DibujoAutomata extends javax.swing.JFrame {
      * @param marcado Si es true, significa que está marcado y tiene un color especial
      * @return
      */
-    private String getEnlaceStyle(Enlace enlace, String lbl, boolean marcado) {
+    private String getEnlaceStyle(Arco enlace, String lbl, boolean marcado) {
 
         String style = "[";
         // Características gráficas de cada estado
@@ -237,7 +237,7 @@ public class DibujoAutomata extends javax.swing.JFrame {
             String EstadoStyle = this.getColorEstado(e, mark);
             result_nodes += "\t" + e.getId() + " " + EstadoStyle + "\n";
 
-            for (Enlace enlace : e.getEnlaces()) {
+            for (Arco enlace : e.getEnlaces()) {
 
                 Estado orig = enlace.getOrigen();
                 Estado dest = enlace.getDestino();
@@ -300,10 +300,10 @@ public class DibujoAutomata extends javax.swing.JFrame {
         jTextAlpha.setEditable(false);
         jTextAlpha.setName("jTextAlpha"); // NOI18N
 
-        jLabel2.setText("Expresi�n Regular:");
+        jLabel2.setText("Alfabeto:");
         jLabel2.setName("jLabel2"); // NOI18N
 
-        jLabel3.setText("Alfabeto:");
+        jLabel3.setText("Expr. Regular:");
         jLabel3.setName("jLabel3"); // NOI18N
 
         jTextReGex.setEditable(false);

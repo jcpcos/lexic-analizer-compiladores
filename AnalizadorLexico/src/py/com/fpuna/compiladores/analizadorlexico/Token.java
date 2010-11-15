@@ -4,8 +4,6 @@ package py.com.fpuna.compiladores.analizadorlexico;
  * Clase que encapsula a cada componente enviado desde el analizador léxico 
  * al analizador sintáctico para su procesamiento. <br> <br>
  *
- * @author Cristhian Parra ({@link cdparra@gmail.com})
- * @author Fernando Mancía ({@link fernandomancia@gmail.com})
  */
 public class Token implements Comparable<Token> {
 

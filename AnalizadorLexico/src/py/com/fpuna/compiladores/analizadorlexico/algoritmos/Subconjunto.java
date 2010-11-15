@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import py.com.fpuna.compiladores.analizadorlexico.Automata;
 import py.com.fpuna.compiladores.analizadorlexico.Token;
-import py.com.fpuna.compiladores.analizadorlexico.automata.Enlace;
+import py.com.fpuna.compiladores.analizadorlexico.automata.Arco;
 import py.com.fpuna.compiladores.analizadorlexico.automata.Estado;
 import py.com.fpuna.compiladores.analizadorlexico.automata.ListaEstados;
 import py.com.fpuna.compiladores.exceptions.AutomataException;
@@ -32,7 +32,7 @@ public class Subconjunto {
         int i = 0;
 
         Estado est_inicial = automataSubconj.getEstados().getEstadoInicial();
-        ListaEstados lista_2 = e_cerradura(est_inicial, new ListaEstados());
+        ListaEstados lista_2 = cerradura_empty(est_inicial, new ListaEstados());
         lista_2.setId(0);
         listaEstados.add(lista_2);
 
@@ -44,7 +44,7 @@ public class Subconjunto {
             it = automataSubconj.getAlpha().iterator();
             while (it.hasNext()) {
                 simbolo = new Token((String) it.next());
-                lista_1 = e_cerradura(mover(lista_3, simbolo));
+                lista_1 = cerradura_empty(mover(lista_3, simbolo));
                 if (lista_1 == null) {
                     continue;
                 }
@@ -66,32 +66,27 @@ public class Subconjunto {
     }
 
     /**
-     * Ejecuta el algoritmo "e_cerradura(s)"
-     * En donde a partir de un estado s, retorna una lista de estados
-     * que se forma de recorrer desde el estado s por transiciones vacias.
-     * Implementación recursiva, ya que debe recorrer los nodos por donde
-     * exista enlaces vacios de la misma forma.
-     *
+     * Implementa el  algoritmo "e_cerradura(s)", partiendo de un estado s
+     * retorna una lista de estados formada en el recorrido desde el estado s
+     * por todos los enlaces vacíos.
      *
      * @param s Estado que se agrega y recorre por sus vacios.
-     * @param listaActual (lista de estados donde se van agregando. Al inicio
-     *          está vacia
-     * @return La lista de estados por los que se recorre  mediante vacio desde
-     *          el estado "s"
+     * @param listaCurr lista de estados donde se van agregando. Al inicio está vacia
+     * @return La lista de estados por los que se recorre mediante vacio desde el estado "s"
      */
-    public ListaEstados e_cerradura(Estado s, ListaEstados listaActual) {
+    public ListaEstados cerradura_empty(Estado s, ListaEstados listaCurr) {
         Iterator it = s.getEnlaces().getIterator();
-        ListaEstados listaNueva = null;
+        ListaEstados listaNew = null;
         while (it.hasNext()) {
-            Enlace e = (Enlace) it.next();
-            if (e.getEtiqueta().compareTo(Automata.EMPTY) == 0) {
-                listaNueva = e_cerradura(e.getDestino(), listaActual);
-                listaActual = concatListas(listaActual, listaNueva);
+            Arco e = (Arco) it.next();
+            if (e.getEtiqueta().compareTo(Automata.EMPTY) == 0) { //si la etiqueta del enlace es EMPTY
+                listaNew = cerradura_empty(e.getDestino(), listaCurr);
+                listaCurr = concatListas(listaCurr, listaNew);
 
             }
         }
-        listaActual.insertar(s);
-        return listaActual;
+        listaCurr.insertar(s);
+        return listaCurr;
     }
 
     /***
@@ -104,7 +99,7 @@ public class Subconjunto {
      * @param T
      * @return
      */
-    public ListaEstados e_cerradura(ListaEstados T) {
+    public ListaEstados cerradura_empty(ListaEstados T) {
         if (T == null) {
             return null;
         }
@@ -115,14 +110,14 @@ public class Subconjunto {
 
         while (it.hasNext()) {
             act = (Estado) it.next();
-            lista_ret = concatListas(lista_ret, e_cerradura(act, new ListaEstados()));
+            lista_ret = concatListas(lista_ret, cerradura_empty(act, new ListaEstados()));
         }
 
         return lista_ret;
     }
 
     /***
-     *  Realiza el algoritmo mover que se propone en el capítulo 3.
+     * Realiza el algoritmo mover que se propone en el capítulo 3.
      * Dado una lista de estados "T" y un símbolo "a" del alfabeto, mover
      * retorna una lista con los estados en donde existe una transición por "a"
      * desde alguno de los estados que hay en "T".
@@ -135,7 +130,7 @@ public class Subconjunto {
         Iterator itEstados = null;
         Iterator itEnlaces = null;
         Estado estado = null;
-        Enlace enlace = null;
+        Arco enlace = null;
         ListaEstados lista = new ListaEstados();
 
         itEstados = T.getIterator();
@@ -144,7 +139,7 @@ public class Subconjunto {
             itEnlaces = estado.getEnlaces().getIterator();
 
             while (itEnlaces.hasNext()) {
-                enlace = (Enlace) itEnlaces.next();
+                enlace = (Arco) itEnlaces.next();
                 if (enlace.getEtiqueta().compareTo(a.getValor()) == 0) {
                     lista.insertar(enlace.getDestino());
                 }
@@ -292,7 +287,7 @@ public class Subconjunto {
             actual.setVisitado(true);
             Iterator it = actual.getEnlaces().iterator();
             while (it.hasNext()) {
-                Enlace enlace = (Enlace) it.next();
+                Arco enlace = (Arco) it.next();
                 visitarRecursivo(enlace.getDestino());
             }
         }

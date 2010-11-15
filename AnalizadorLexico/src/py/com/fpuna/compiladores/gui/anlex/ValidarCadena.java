@@ -11,7 +11,7 @@ import py.com.fpuna.compiladores.analizadorlexico.Automata.TipoAutomata;
 import py.com.fpuna.compiladores.analizadorlexico.Token;
 import py.com.fpuna.compiladores.analizadorlexico.algoritmos.Subconjunto;
 import py.com.fpuna.compiladores.analizadorlexico.algoritmos.Thompson;
-import py.com.fpuna.compiladores.analizadorlexico.automata.Enlace;
+import py.com.fpuna.compiladores.analizadorlexico.automata.Arco;
 import py.com.fpuna.compiladores.analizadorlexico.automata.Estado;
 import py.com.fpuna.compiladores.analizadorlexico.automata.ListaEstados;
 
@@ -22,14 +22,14 @@ import py.com.fpuna.compiladores.analizadorlexico.automata.ListaEstados;
 public class ValidarCadena {
 
     private String validationString;
-    private ArrayList<ListaEstados> estadosPathAFN;
+    private ArrayList<ListaEstados> estadosAFN;
     private ListaEstados estadosPath;
     private int currentIndex = -1;
     private Thompson automata;
     Stack<Estado> estadosAnt;           // conjunto actual de estados
     Stack<Estado> estadosNew;           // conjunto siguiente de estados
     boolean[] yaEstaEn;                 // cuales estados ya están en EstadosNew
-    ArrayList<Enlace> enlacesVacios;         // lista utilizada para almacenar mover[s,vacio]
+    ArrayList<Arco> enlacesVacios;         // lista utilizada para almacenar mover[s,vacio]
     String currentCar;
 
     public ValidarCadena() {
@@ -38,8 +38,7 @@ public class ValidarCadena {
     public ValidarCadena(String validationString, Thompson automata) {
         this.validationString = validationString;
         this.automata = automata;
-
-        this.estadosPathAFN = new ArrayList<ListaEstados>();
+        this.estadosAFN = new ArrayList<ListaEstados>();
         this.estadosPath = new ListaEstados();
         this.yaEstaEn    = new boolean[automata.getEstados().size()];
         this.estadosAnt  = new Stack<Estado>();
@@ -51,87 +50,81 @@ public class ValidarCadena {
     /**
      * Proceso que recorre el automata para verificar si la cadena de prueba
      * perteneces al lenguaje descrito por la expresión regular.
-     * @param test cadena de prueba cuya pertenencia queremos verificar
-     * @return boolean True si la cadena pertenece, false en caso contrario.
      */
     public boolean validar() {
-        boolean exito = true;
+        boolean pertenece = true;
 
         if (this.automata.tipoAutomata == TipoAutomata.AFN.ordinal()) {
-            exito = this.validar_AFN();
+            pertenece = this.validaAFN();
         } else {
-            exito = this.validar_AFD();
+            pertenece = this.validaAFD();
         }
 
-        return exito;
+        return pertenece;
     }
 
     private boolean contieneFinal(ListaEstados S) {
-        boolean exito = false;
+        boolean pertenece = false;
         for (Estado e : S ) {
-            exito = e.isEstadofinal();
-            if (exito) {
+            pertenece = e.isEstadofinal();
+            if (pertenece) {
                 break;
             }
         }
-        return exito;
+        return pertenece;
     }
 
-    private boolean validar_AFN() {
-        boolean exito = true;
+    private boolean validaAFN() {
+        boolean pertenece = true;
 
-        Subconjunto subc = new Subconjunto(this.automata);
-        ListaEstados S = new ListaEstados();
-        S = subc.e_cerradura(this.automata.getInicial(), S);
-        String c = this.sigCar();
+        Subconjunto subconjunto = new Subconjunto(this.automata);
+        ListaEstados listState = new ListaEstados();
+        listState = subconjunto.cerradura_empty(this.automata.getInicial(), listState);
+        String symbol = this.nextSymbol(); //obtiene el sgte simbolo
+        this.estadosAFN.add(listState);
 
-        this.estadosPathAFN.add(S);
+        while (symbol.compareToIgnoreCase("")!=0) {
+            listState = subconjunto.mover(listState, new Token(symbol));
+            listState = subconjunto.cerradura_empty(listState);
 
-        while (c.compareToIgnoreCase("")!=0) {
-            S = subc.mover(S, new Token(c));
-            S = subc.e_cerradura(S);
-
-            if (S == null || S.size() == 0) {
-                exito = false;
+            if (listState == null || listState.size() == 0) {
+                pertenece = false;
                 break;
             }
 
-            this.estadosPathAFN.add(S);
-
-            c = this.sigCar();
+            this.estadosAFN.add(listState);
+            symbol = this.nextSymbol();
         }
 
-        if (exito) {
-            exito = this.contieneFinal(S);
+        if (pertenece) {
+            pertenece = this.contieneFinal(listState);
         }
 
-        return exito;
+        return pertenece;
     }
 
-    private boolean validar_AFD() {
-        Estado s = this.automata.getInicial();
-        String c = this.sigCar();
-        boolean exito = true;
+    private boolean validaAFD() {
+        Estado state = this.automata.getInicial();
+        String symbol = this.nextSymbol();
+        boolean pertenece = true;
 
-        // empezamos a cargar el camino de la simulación
-        this.estadosPath.insertar(s);
-
-        while (c.compareToIgnoreCase("")!=0) {
-            s = this.mover(s, c);
-            if (s == null) {
-                exito = false;
+        this.estadosPath.insertar(state);
+        while (symbol.compareToIgnoreCase("")!=0) {
+            state = this.mover(state, symbol);
+            if (state == null) {
+                pertenece = false;
                 break;
             }
 
-            this.estadosPath.insertar(s);
-            c = this.sigCar();
+            this.estadosPath.insertar(state);
+            symbol = this.nextSymbol();
         }
 
-        if (s != null && !s.isEstadofinal()) {
-           exito = false;
+        if (state != null && !state.isEstadofinal()) {
+           pertenece = false;
         }
 
-        return exito;
+        return pertenece;
     }
 
     private Estado mover(Estado s, String c) {
@@ -139,7 +132,7 @@ public class ValidarCadena {
         return next;
     }
 
-    private String sigCar() {
+    private String nextSymbol() {
         String siguiente = "";
         this.currentIndex++;
         if (this.currentIndex < this.validationString.length()) {

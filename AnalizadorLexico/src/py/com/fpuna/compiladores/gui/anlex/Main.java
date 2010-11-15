@@ -464,6 +464,11 @@ public class Main extends javax.swing.JFrame {
 
         jTextValidate.setEnabled(false);
         jTextValidate.setName("jTextValidate"); // NOI18N
+        jTextValidate.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextValidateKeyReleased(evt);
+            }
+        });
 
         jTextValResult.setBackground(resourceMap.getColor("jTextValResult.background")); // NOI18N
         jTextValResult.setEditable(false);
@@ -745,16 +750,26 @@ public class Main extends javax.swing.JFrame {
         // TODO add your handling code here:
         switch(this.jComboBoxValidation.getSelectedIndex()) {
             case 2: this.validationResult = this.validarCadena(this.afd);
-                this.textResultadoValidacion(this.validationResult);
+                this.textResultadoValidacion(this.validationResult, "AFD");
                 break;
             case 3: this.validationResult = this.validarCadena(this.afdMin);
-                this.textResultadoValidacion(this.validationResult);
+                this.textResultadoValidacion(this.validationResult, "AFDmin");
                 break;
             default:
                 this.validationResult = this.validarCadena(this.afn);
-                this.textResultadoValidacion(this.validationResult);
+                this.textResultadoValidacion(this.validationResult, "AFN");
         }
     }//GEN-LAST:event_validarBtnActionPerformed
+
+    private void jTextValidateKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextValidateKeyReleased
+        // TODO add your handling code here:
+        String texVal = jTextValidate.getText();
+        if (texVal.compareTo("") != 0) {
+            this.validarBtn.setEnabled(true);
+        } else {
+            this.validarBtn.setEnabled(false);
+        }
+    }//GEN-LAST:event_jTextValidateKeyReleased
 
     private void doLexicAnalisys() {
         String regExp = txtRegex.getText();
@@ -878,7 +893,7 @@ public class Main extends javax.swing.JFrame {
         dt.setBackground(Color.white);
         dt.setForeground(Color.black);
 
-        OneColumnRenderer cr = new OneColumnRenderer(0, Color.gray, Color.white);
+        ColumnRenderer cr = new ColumnRenderer(0, Color.gray, Color.white);
         cr.setFont(new Font("Verdana", Font.BOLD, 12));
         Tabla.getColumnModel().getColumn(0).setCellRenderer(cr);
     }
@@ -888,8 +903,11 @@ public class Main extends javax.swing.JFrame {
         viewAFNbtn.setEnabled(false);
         viewAFDbtn.setEnabled(false);
         validarBtn.setEnabled(false);
-        jComboBoxValidation.setEnabled(false);
-        jTextValidate.setEnabled(false);
+        
+        jComboBoxValidation.setEnabled(false); //bloquea el combo de selección de autómata para validar
+        jTextValidate.setText("");        //limpia el text de la cadena a validar
+        jTextValidate.setEnabled(false);  //bloquea el text de la cadena a validar
+        jTextValResult.setText("");      //limpia el text del resultado de la validación
         
         txtMensajes.setText("");        
         jTableAFN.setModel(new AutomataTable(null));
@@ -902,20 +920,19 @@ public class Main extends javax.swing.JFrame {
         this.procesar.setEnabled(true);
         this.txtAlfabeto.setEnabled(true);
         this.jTextValidate.setEnabled(true);
-        this.validarBtn.setEnabled(true);
         this.jComboBoxValidation.setEnabled(true);
     }
 
-    private void textResultadoValidacion(boolean SimResult) {
+    private void textResultadoValidacion(boolean valResult, String name) {
 
-        Color incorrecto = Color.red;
-        Color correcto   = Color.green;
+        Color incorrecto = Color.ORANGE;
+        Color correcto   = Color.BLUE;
 
-        if (SimResult) {
-            this.jTextValResult.setText("La cadena pertenece al lenguaje");
+        if (valResult) {
+            this.jTextValResult.setText("Según " + name +", la cadena pertenece al lenguaje");
             this.jTextValResult.setForeground(correcto);
         } else {
-            this.jTextValResult.setText("La cadena NO pertenece al lenguaje");
+            this.jTextValResult.setText("Según " + name +", la cadena NO pertenece al lenguaje");
             this.jTextValResult.setForeground(incorrecto);
         }
     }

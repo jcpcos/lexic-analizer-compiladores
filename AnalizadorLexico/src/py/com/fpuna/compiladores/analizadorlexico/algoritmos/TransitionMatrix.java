@@ -3,7 +3,7 @@ package py.com.fpuna.compiladores.analizadorlexico.algoritmos;
 import java.util.HashMap;
 import py.com.fpuna.compiladores.analizadorlexico.Automata;
 import py.com.fpuna.compiladores.analizadorlexico.Token;
-import py.com.fpuna.compiladores.analizadorlexico.automata.Enlace;
+import py.com.fpuna.compiladores.analizadorlexico.automata.Arco;
 import py.com.fpuna.compiladores.analizadorlexico.automata.Estado;
 import py.com.fpuna.compiladores.analizadorlexico.automata.ListaEstados;
 
@@ -96,7 +96,7 @@ public class TransitionMatrix {
             }
 
             //Agregamos los enlaces.
-            Enlace enlace_new = new Enlace(st_new_origen, st_new_dest,
+            Arco enlace_new = new Arco(st_new_origen, st_new_dest,
                     clave.getIndiceToken().getValor());
 
             st_new_origen.addEnlace(enlace_new);
