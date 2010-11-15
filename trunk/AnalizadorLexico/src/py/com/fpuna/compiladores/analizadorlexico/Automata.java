@@ -2,9 +2,9 @@ package py.com.fpuna.compiladores.analizadorlexico;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import py.com.fpuna.compiladores.analizadorlexico.automata.Enlace;
+import py.com.fpuna.compiladores.analizadorlexico.automata.Arco;
 import py.com.fpuna.compiladores.analizadorlexico.automata.Estado;
-import py.com.fpuna.compiladores.analizadorlexico.automata.ListaEnlaces;
+import py.com.fpuna.compiladores.analizadorlexico.automata.ListaArcos;
 import py.com.fpuna.compiladores.analizadorlexico.automata.ListaEstados;
 
 /**
@@ -35,7 +35,7 @@ public class Automata {
 
         Estado origen = new Estado(0, true, false, false);
         Estado destino = new Estado(1, false, true, false);
-        Enlace enlace = new Enlace(origen, destino, simbolo);
+        Arco enlace = new Arco(origen, destino, simbolo);
         origen.addEnlace(enlace);
         estadoInicial = origen;
 
@@ -53,7 +53,7 @@ public class Automata {
 
     private void eliminarEstado(Estado e) {
         for (Estado est : this.listaEstados) {
-            for (Enlace enlace : est.getEnlaces()) {
+            for (Arco enlace : est.getEnlaces()) {
                 if (e.getId() != est.getId() && enlace.getDestino().getId()
                         == e.getId()) {
                     est.eliminarEnlace(enlace);
@@ -183,7 +183,7 @@ public class Automata {
 
             Iterator itenlaces = e.getEnlaces().getIterator();
             while (itenlaces.hasNext()) {
-                Enlace enlace = (Enlace) itenlaces.next();
+                Arco enlace = (Arco) itenlaces.next();
                 result += "\t"
                         + enlace.getOrigen().getId() + " ---" + enlace.getEtiqueta() + "---> " + enlace.getDestino().getId() + "\n";
             }
@@ -191,11 +191,11 @@ public class Automata {
         return result;
     }
 
-    public ListaEnlaces getEnlaces() {
-        ListaEnlaces ret = new ListaEnlaces();
+    public ListaArcos getEnlaces() {
+        ListaArcos ret = new ListaArcos();
 
         for (Estado est : getEstados()) {
-            for (Enlace enlace : est.getEnlaces()) {
+            for (Arco enlace : est.getEnlaces()) {
                 ret.add(enlace);
             }
         }
@@ -248,7 +248,7 @@ public class Automata {
             Iterator itenlaces = e.getEnlaces().getIterator();
             while (itenlaces.hasNext()) {
 
-                Enlace enlace = (Enlace) itenlaces.next();
+                Arco enlace = (Arco) itenlaces.next();
 
                 Estado orig = enlace.getOrigen();
                 Estado dest = enlace.getDestino();
@@ -277,26 +277,26 @@ public class Automata {
         A1.listaEstados.insertar(new Estado(5, true, false, false));
 
         //Estado 0
-        A1.listaEstados.getEstadoById(0).addEnlace(new Enlace(A1.listaEstados.getEstadoById(0),
+        A1.listaEstados.getEstadoById(0).addEnlace(new Arco(A1.listaEstados.getEstadoById(0),
                 A1.listaEstados.getEstadoById(1), "a"));
 
-        A1.listaEstados.getEstadoById(0).addEnlace(new Enlace(A1.listaEstados.getEstadoById(0),
+        A1.listaEstados.getEstadoById(0).addEnlace(new Arco(A1.listaEstados.getEstadoById(0),
                 A1.listaEstados.getEstadoById(2), "b"));
 
 
         //Estado 1 y 2
-        A1.listaEstados.getEstadoById(1).addEnlace(new Enlace(A1.listaEstados.getEstadoById(1),
+        A1.listaEstados.getEstadoById(1).addEnlace(new Arco(A1.listaEstados.getEstadoById(1),
                 A1.listaEstados.getEstadoById(3), "a"));
 
-        A1.listaEstados.getEstadoById(2).addEnlace(new Enlace(A1.listaEstados.getEstadoById(2),
+        A1.listaEstados.getEstadoById(2).addEnlace(new Arco(A1.listaEstados.getEstadoById(2),
                 A1.listaEstados.getEstadoById(4), "a"));
 
 
         //Estado 3 y 4
-        A1.listaEstados.getEstadoById(3).addEnlace(new Enlace(A1.listaEstados.getEstadoById(3),
+        A1.listaEstados.getEstadoById(3).addEnlace(new Arco(A1.listaEstados.getEstadoById(3),
                 A1.listaEstados.getEstadoById(5), "b"));
 
-        A1.listaEstados.getEstadoById(4).addEnlace(new Enlace(A1.listaEstados.getEstadoById(4),
+        A1.listaEstados.getEstadoById(4).addEnlace(new Arco(A1.listaEstados.getEstadoById(4),
                 A1.listaEstados.getEstadoById(5), "a"));
         return A1;
     }

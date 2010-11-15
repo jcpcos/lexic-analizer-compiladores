@@ -10,7 +10,7 @@ import py.com.fpuna.compiladores.analizadorlexico.Token;
 public class Estado implements Comparable<Estado> {
 
     private int id;
-    private ListaEnlaces enlaces;
+    private ListaArcos enlaces;
     private boolean visitado, inicial, fin;
 
     public Estado(int id, boolean esInicial, boolean esFinal, boolean visitado) {
@@ -18,7 +18,7 @@ public class Estado implements Comparable<Estado> {
         this.visitado = visitado;
         this.fin = esFinal;
         this.inicial = esInicial;
-        this.enlaces = new ListaEnlaces();
+        this.enlaces = new ListaArcos();
     }
 
 
@@ -53,7 +53,7 @@ public class Estado implements Comparable<Estado> {
         return id;
     }
 
-    public ListaEnlaces getEnlaces() {
+    public ListaArcos getEnlaces() {
         return enlaces;
     }
 
@@ -105,9 +105,9 @@ public class Estado implements Comparable<Estado> {
     // --------------------------- OTROS MÉTODOS --------------------------- //
     /**
      * Agrega un nuevo enlace que sale de este estado
-     * @param e Enlace a agregar
+     * @param e Arco a agregar
      */
-    public void addEnlace(Enlace e) {
+    public void addEnlace(Arco e) {
         // Insertar en la lista de enlaces para tener un método eficiente de
         // recorrido en el futuro
         enlaces.insertar(e);
@@ -128,7 +128,7 @@ public class Estado implements Comparable<Estado> {
      * @return El estado destino al que va desde este estado por el token a
      */
     public Estado estadoDestinoString(String a) {
-        for (Enlace x : enlaces) {
+        for (Arco x : enlaces) {
             if (x.getEtiqueta().compareTo(a) == 0) {
                 return x.getDestino();
             }
@@ -143,7 +143,7 @@ public class Estado implements Comparable<Estado> {
      * @return
      */
     public Estado getDestinoFromHash(String simbolo) {
-        Enlace link = this.getEnlaceSimboloFromHash(simbolo);
+        Arco link = this.getEnlaceSimboloFromHash(simbolo);
         Estado result = null;
 
         if (link != null) {
@@ -157,7 +157,7 @@ public class Estado implements Comparable<Estado> {
      * @param simbolo
      * @return
      */
-    public Enlace getEnlaceSimboloFromHash(String simbolo) {
+    public Arco getEnlaceSimboloFromHash(String simbolo) {
         return this.enlaces.getEnlaceSimbolo(simbolo);
     }
 
@@ -166,11 +166,11 @@ public class Estado implements Comparable<Estado> {
      * estado.
      * @return
      */
-    public ArrayList<Enlace> getEnlacesVacios() {
+    public ArrayList<Arco> getEnlacesVacios() {
         return this.enlaces.getVacios();
     }
 
-    public void eliminarEnlace(Enlace e) {
+    public void eliminarEnlace(Arco e) {
         this.enlaces.borrar(e);
     }
 
@@ -180,7 +180,7 @@ public class Estado implements Comparable<Estado> {
         }
 
         boolean esMuerto = true;
-        for (Enlace e : this.enlaces) {
+        for (Arco e : this.enlaces) {
             if (e.getDestino().getId() != this.getId()) {
                 esMuerto = false;
             }

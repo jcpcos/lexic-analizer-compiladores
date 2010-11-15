@@ -1,6 +1,6 @@
 package py.com.fpuna.compiladores.analizadorlexico.automata;
 
-public class Enlace implements Comparable<Enlace> {    
+public class Arco implements Comparable<Arco> {
     private Estado origen;
     private Estado destino;
     private String etiqueta;
@@ -10,9 +10,9 @@ public class Enlace implements Comparable<Enlace> {
       * 
       * @param origen  Estado de origen del enlace.
       * @param destino Estado de destino del enlace.
-      * @param label   Etiqueta del Enlace
+      * @param label   Etiqueta del Arco
       */
-    public Enlace(Estado origen, Estado destino, String label) {
+    public Arco(Estado origen, Estado destino, String label) {
         this.origen = origen;
         this.destino = destino;
         this.etiqueta = label;
@@ -55,7 +55,7 @@ public class Enlace implements Comparable<Enlace> {
      *              <li><b>-1 (Menos Uno)</b> si son <b>distintos</b></li>
      *         </ul>
      */
-    public int compareTo(Enlace e) {
+    public int compareTo(Arco e) {
         if (e.getOrigen() == this.getOrigen()
                 && e.getDestino() == this.getDestino()
                 && e.getEtiqueta().equals(this.getEtiqueta())

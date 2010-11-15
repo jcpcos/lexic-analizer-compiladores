@@ -5,9 +5,9 @@ import javax.swing.table.AbstractTableModel;
 import py.com.fpuna.compiladores.analizadorlexico.Automata;
 import py.com.fpuna.compiladores.analizadorlexico.Automata.TipoAutomata;
 import py.com.fpuna.compiladores.analizadorlexico.algoritmos.Thompson;
-import py.com.fpuna.compiladores.analizadorlexico.automata.Enlace;
+import py.com.fpuna.compiladores.analizadorlexico.automata.Arco;
 import py.com.fpuna.compiladores.analizadorlexico.automata.Estado;
-import py.com.fpuna.compiladores.analizadorlexico.automata.ListaEnlaces;
+import py.com.fpuna.compiladores.analizadorlexico.automata.ListaArcos;
 import py.com.fpuna.compiladores.analizadorlexico.automata.ListaEstados;
 
 /**
@@ -189,7 +189,7 @@ public class AutomataTable extends AbstractTableModel {
         for (Iterator<Estado> it = this.automata.getEstados().getIterator(); it.hasNext();) {
             
             Estado current = it.next();                     // Obtenemos el estadoa actual a procesar
-            ListaEnlaces enlaces = current.getEnlaces();    // Obtenemos sus enlaces            
+            ListaArcos enlaces = current.getEnlaces();    // Obtenemos sus enlaces
             int rowEstado = current.getId();                // La fila del estado es igual a su id
             
             String estadoLabel = rowEstado+"";
@@ -205,9 +205,9 @@ public class AutomataTable extends AbstractTableModel {
             
             // Iteramos sobre los enlaces para agregar los destinos en las celdas
             // adecuadas de la matriz
-            for (Iterator<Enlace> ite = enlaces.getIterator(); ite.hasNext();) {
+            for (Iterator<Arco> ite = enlaces.getIterator(); ite.hasNext();) {
                 
-                Enlace currentLink = ite.next();            // enlace actual a procesar                
+                Arco currentLink = ite.next();            // enlace actual a procesar
                 String symbol = currentLink.getEtiqueta();  // simbolo del enlace                
                 int indexCol = this.findColumn(symbol);     // obtenemos la columna de la etiqueta
                 

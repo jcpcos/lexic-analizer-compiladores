@@ -25,10 +25,6 @@ import py.com.fpuna.compiladores.exceptions.LexicalError;
  * 
  * Se implementa un Traductor Dirigido por la Sintaxis que sigue este BNF y 
  * produce el automata basándose en las construcciones de Thompson. <br><br>
- * 
- * 
- * @author Cristhian Parra ({@link cdparra@gmail.com})
- * @author Fernando Mancia ({@link fernandomancia@gmail.com})
  */
 public final class Analizador {
  

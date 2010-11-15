@@ -11,24 +11,20 @@ import java.awt.Font;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
-/**
- *
- * @author Cristhian Parra ({@link cdparra@gmail.com})
- */
-public class OneColumnRenderer extends DefaultTableCellRenderer {
+public class ColumnRenderer extends DefaultTableCellRenderer {
 
     private int columna;
     private Color background;
     private Color foreground;
 
-    public OneColumnRenderer() {
+    public ColumnRenderer() {
         this.columna = 0;
         this.background = Color.white;
         this.foreground = Color.black;
 
     }
 
-    public OneColumnRenderer(int columna, Color b, Color f) {
+    public ColumnRenderer(int columna, Color b, Color f) {
         this.columna = columna;
         this.background = b;
         this.foreground = f;

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
 import py.com.fpuna.compiladores.analizadorlexico.Automata;
-import py.com.fpuna.compiladores.analizadorlexico.automata.Enlace;
+import py.com.fpuna.compiladores.analizadorlexico.automata.Arco;
 import py.com.fpuna.compiladores.analizadorlexico.automata.Estado;
 import py.com.fpuna.compiladores.analizadorlexico.automata.ListaEstados;
 import py.com.fpuna.compiladores.exceptions.AutomataException;
@@ -121,10 +121,10 @@ public class Minimizacion {
 
             Iterator itenlaces = representante.getEnlaces().getIterator();
             while (itenlaces.hasNext()){
-                Enlace e = (Enlace) itenlaces.next();
+                Arco e = (Arco) itenlaces.next();
                 ListaEstados lista_destino = enqueLista(actual, e.getDestino());
                 Estado est_destino = AFDM.getEstadoById(lista_destino.getId());
-                Enlace nuevo_enlace = new Enlace(estado_afdm, est_destino, e.getEtiqueta());
+                Arco nuevo_enlace = new Arco(estado_afdm, est_destino, e.getEtiqueta());
                 estado_afdm.addEnlace(nuevo_enlace);
             }
        }
@@ -150,7 +150,7 @@ public class Minimizacion {
             String claveSimbolos = "";
             String claveEstados = "";
 
-            for(Enlace enlace : estado.getEnlaces()){
+            for(Arco enlace : estado.getEnlaces()){
                 Estado dest = enlace.getDestino();
                 ListaEstados tmp = enqueLista(todas, dest);
                 claveSimbolos += enlace.getEtiqueta().trim();

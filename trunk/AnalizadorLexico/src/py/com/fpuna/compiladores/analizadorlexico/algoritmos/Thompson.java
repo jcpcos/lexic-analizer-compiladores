@@ -2,7 +2,7 @@ package py.com.fpuna.compiladores.analizadorlexico.algoritmos;
 
 import java.util.Iterator;
 import py.com.fpuna.compiladores.analizadorlexico.Automata;
-import py.com.fpuna.compiladores.analizadorlexico.automata.Enlace;
+import py.com.fpuna.compiladores.analizadorlexico.automata.Arco;
 import py.com.fpuna.compiladores.analizadorlexico.automata.Estado;
 
 /**
@@ -45,12 +45,12 @@ public class Thompson extends Automata {
         // Se crean los enlaces vacios desde el nuevo estado inicial
 
         // 1. Nuevo Inicio --> Inicio del Automata Actual
-        initialState.addEnlace(new Enlace(initialState,
+        initialState.addEnlace(new Arco(initialState,
                 tInicial,
                 EMPTY));
 
         // 2. Nuevo Inicio --> Inicio del Automata Alternativo
-        initialState.addEnlace(new Enlace(initialState,
+        initialState.addEnlace(new Arco(initialState,
                 paramInicial,
                 EMPTY));
 
@@ -58,10 +58,10 @@ public class Thompson extends Automata {
         // alternativo (A2) hacia el Nuevo Estado Final.
 
         // 3. Fin del Actual (A1) --> Nuevo Estado Final
-        tFinal.addEnlace(new Enlace(tFinal, finalState, EMPTY));
+        tFinal.addEnlace(new Arco(tFinal, finalState, EMPTY));
 
         // 4. Fin del Alternativo (A2) --> Nuevo Estado Final
-        paramFinal.addEnlace(new Enlace(paramFinal, finalState, EMPTY));
+        paramFinal.addEnlace(new Arco(paramFinal, finalState, EMPTY));
 
         // Agregamos a A1 todos los estados de A2
         Iterator it = param.getEstados().getIterator();
@@ -81,7 +81,7 @@ public class Thompson extends Automata {
     public void Concat(Thompson param) {
         Estado finalState = getFinales().getEstado(0);
         Estado initialParam = param.getInicial();
-        Iterator<Enlace> enlacesParam = initialParam.getEnlaces().getIterator();
+        Iterator<Arco> enlacesParam = initialParam.getEnlaces().getIterator();
 
         initialParam.setEstadoinicial(false);
         finalState.setEstadofinal(false);
@@ -90,7 +90,7 @@ public class Thompson extends Automata {
         param.renumerar(estadosFinales);
 
         while (enlacesParam.hasNext()) {
-            Enlace current = enlacesParam.next();
+            Arco current = enlacesParam.next();
             current.setOrigen(finalState);
             finalState.addEnlace(current);
         }
@@ -99,10 +99,10 @@ public class Thompson extends Automata {
 
         while (estadosParam.hasNext()) {
             Estado estadoParam = estadosParam.next();
-            Iterator<Enlace> enlaces = estadoParam.getEnlaces().getIterator();
+            Iterator<Arco> enlaces = estadoParam.getEnlaces().getIterator();
 
             while (enlaces.hasNext()) {
-                Enlace enlaceActual = enlaces.next();
+                Arco enlaceActual = enlaces.next();
                 Estado destinoActual = enlaceActual.getDestino();
 
                 // Si el destino de este enlace
@@ -133,11 +133,11 @@ public class Thompson extends Automata {
         ex_estado_inicial.setEstadoinicial(false);
         ex_estado_final.setEstadofinal(false);
 
-        estado_inicial.addEnlace(new Enlace(estado_inicial,
+        estado_inicial.addEnlace(new Arco(estado_inicial,
                 ex_estado_inicial,
                 EMPTY));
 
-        ex_estado_final.addEnlace(new Enlace(ex_estado_final,
+        ex_estado_final.addEnlace(new Arco(ex_estado_final,
                 estado_final,
                 EMPTY));
 
@@ -151,7 +151,7 @@ public class Thompson extends Automata {
 
     public void NoneOrOne() {
         Common();
-        getEstadoInicial().addEnlace(new Enlace(getEstadoInicial(),
+        getEstadoInicial().addEnlace(new Arco(getEstadoInicial(),
                 getListaEstadosFinales().getEstado(0),
                 EMPTY));
     }
@@ -160,7 +160,7 @@ public class Thompson extends Automata {
         Estado inicio_original = getEstadoInicial();
         Estado fin_original = getFinales().getEstado(0);
         Common();
-        fin_original.addEnlace(new Enlace(fin_original,
+        fin_original.addEnlace(new Arco(fin_original,
                 inicio_original,
                 EMPTY));
     }
@@ -170,11 +170,11 @@ public class Thompson extends Automata {
         Estado fin_original = getListaEstadosFinales().get(0);
         Common();
 
-        fin_original.addEnlace(new Enlace(fin_original,
+        fin_original.addEnlace(new Arco(fin_original,
                 inicio_original,
                 EMPTY));
 
-        getEstadoInicial().addEnlace(new Enlace(getEstadoInicial(),
+        getEstadoInicial().addEnlace(new Arco(getEstadoInicial(),
                 getListaEstadosFinales().getEstado(0),
                 EMPTY));
     }

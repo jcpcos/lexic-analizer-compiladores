@@ -55,29 +55,4 @@ public class Main {
 
     }
 
-    public static Automata unAutomata() throws Exception{
-        String regex = "a*b?(ab|ba)*b?a*";
-        String alpha = "ab";
-
-//        Analizador t = new Analizador(regex, alpha);
-//        Automata A = t.traducir();
-//        A.setAlpha(t.getAlfabeto());
-//        A.setRegex(t.getRegex());
-        /**
-        //Alg de Subconjuntos
-        AlgSubconjuntos algSub = new AlgSubconjuntos(A);
-        Automata AFD = algSub.ejecutar().convertAutomata();
-
-        //Eliminar estados inalacanzables
-        AFD = AlgSubconjuntos.eliminar_estados_inalcanzables(AFD);
-
-        //Alg de Minimizacion
-        AlgMinimizacion algMin = new AlgMinimizacion(AFD);
-        Automata AFDM = algMin.minimizar();
-
-        //Eliminar estados muertos
-        AFDM.eliminar_estados_muertos();**/
-        return  null;
-    }
-
 }

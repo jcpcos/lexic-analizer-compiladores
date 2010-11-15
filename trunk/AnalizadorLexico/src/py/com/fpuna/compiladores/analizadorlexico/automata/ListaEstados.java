@@ -6,11 +6,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import py.com.fpuna.compiladores.exceptions.AutomataException;
 
-/**
- *
- * @author Cristhian Parra ({@link cdparra@gmail.com})
- * @author Fernando Mancia ({@link fernandomancia@gmail.com})
- */
+
 public class ListaEstados extends ArrayList<Estado>{
     private int id; 
     

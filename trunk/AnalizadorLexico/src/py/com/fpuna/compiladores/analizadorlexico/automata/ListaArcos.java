@@ -9,25 +9,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
-/**
- * Wrapper de un ArrayList en el que se almacenarán los enlaces que salen de un 
- * Estado. 
- * 
- * Observación: 
- * - Evaluar si no sería mejor un HashMap con clave, en el que podríamos utilizar
- *   el símbolo del alfabeto como clave de cada enlace. 
- * 
- * 
- * @author Cristhian Parra ({@link cdparra@gmail.com})
- * @author Fernando Mancía ({@link fernandomancia@gmail.com})
- */
-public class ListaEnlaces extends ArrayList<Enlace> {
+
+public class ListaArcos extends ArrayList<Arco> {
  
-    /* --------------------- PROPIEDADES DE LA LISTA --------------------- */
     
-    /**
-     * Identificador de la Lista de enlaces
-     */
     private int id; 
     
     /**
@@ -43,23 +28,14 @@ public class ListaEnlaces extends ArrayList<Enlace> {
      * símbolso no vacíos. 
      * 
      */
-    private HashMap<String, Integer> TablaEnlaces;
+    private HashMap<String, Integer> TablaEnlaces; 
+    private ArrayList<Arco> vacios;
     
-    /**
-     * Listado de enlaces cuya etiqueta es el simbolo vacio
-     */
-    private ArrayList<Enlace> vacios;
-    
-    
-    
-    public ListaEnlaces(){
+    public ListaArcos(){
         this.TablaEnlaces = new HashMap<String, Integer>();
-        this.vacios       = new ArrayList<Enlace>();
+        this.vacios       = new ArrayList<Arco>();
     }
-    
-    
-    /* ------------------- GETTERS Y SETTERS DE LA LISTA ------------------- */
-    
+
     /**
      * Establecer el identificador de listado
      * @param id Identificador del conjunto de estados.
@@ -81,7 +57,7 @@ public class ListaEnlaces extends ArrayList<Enlace> {
      * Obtener la lista de enlaces asociados al símbolo vacíó
      * @return Lista de enlaces del simbolo vacío
      */
-    public ArrayList<Enlace> getVacios() {
+    public ArrayList<Arco> getVacios() {
         return vacios;
     }
     
@@ -92,7 +68,7 @@ public class ListaEnlaces extends ArrayList<Enlace> {
      * @param index Indice del arraylist donde está almacenado el estado a obtener.
      * @return El estado almacenado en la posición index.
      */
-    public Enlace getEnlace(int index) {
+    public Arco getEnlace(int index) {
         return this.get(index);
     }
     
@@ -100,18 +76,15 @@ public class ListaEnlaces extends ArrayList<Enlace> {
      * Devuelve un iterador para recorrer el listado de estados.
      * @return Iterador sobre el conjunto de estados.
      */
-    public Iterator<Enlace> getIterator() {
+    public Iterator<Arco> getIterator() {
         return this.iterator();
     }
-        
-    
-    /* --------------------- OTROS MÉTODOS --------------------- */
-    
+
     /**
      * Insertar un nuevo estado a la lista
      * @param e Estado a insertar.
      */
-    public void insertar(Enlace e) {
+    public void insertar(Arco e) {
     
         int     indexToInsert   = this.cantidad();        
         String  simbolo         = e.getEtiqueta();
@@ -130,7 +103,7 @@ public class ListaEnlaces extends ArrayList<Enlace> {
      * @param e Estado a insertar.
      * @param index posicion donde se insertara el elemento
      */
-    public void insertarAt(Enlace e, int index) {
+    public void insertarAt(Arco e, int index) {
     
         int     indexToInsert   = index;        
         String  simbolo         = e.getEtiqueta();
@@ -144,9 +117,9 @@ public class ListaEnlaces extends ArrayList<Enlace> {
         }
     }
     
-    public Enlace getEnlaceSimbolo(String symbol) {
+    public Arco getEnlaceSimbolo(String symbol) {
         Integer index = this.TablaEnlaces.get(symbol);        
-        Enlace result = null; 
+        Arco result = null;
         
         if (index != null) {
             result = this.get(index);
@@ -160,9 +133,9 @@ public class ListaEnlaces extends ArrayList<Enlace> {
      * 
      * @param l
      */
-    public void insertarListaEnlaces(ListaEnlaces l) {
-        Iterator <Enlace> i = l.getIterator();
-        Enlace current; 
+    public void insertarListaEnlaces(ListaArcos l) {
+        Iterator <Arco> i = l.getIterator();
+        Arco current;
         
         while(i.hasNext()) {
             current = i.next();            
@@ -175,7 +148,7 @@ public class ListaEnlaces extends ArrayList<Enlace> {
      * vacios
      * @param e
      */
-    private void agregarEnlaceVacio(Enlace e) {
+    private void agregarEnlaceVacio(Arco e) {
         this.getVacios().add(e);
     }
     
@@ -183,7 +156,7 @@ public class ListaEnlaces extends ArrayList<Enlace> {
      * Eliminar un estado del conjunto.
      * @param e Estado a eliminar
      */
-    public void borrar(Enlace e) {
+    public void borrar(Arco e) {
         
         String simbolo = e.getEtiqueta();
         
@@ -235,7 +208,7 @@ public class ListaEnlaces extends ArrayList<Enlace> {
         
         int result = -1; 
         
-        ListaEnlaces otro = (ListaEnlaces) o;
+        ListaArcos otro = (ListaArcos) o;
         
         // comparación de cantidad de estados
         if (this.cantidad() == otro.cantidad()) {
@@ -243,8 +216,8 @@ public class ListaEnlaces extends ArrayList<Enlace> {
             // comparación uno a uno
             for (int i = 0; i < this.cantidad(); i++) {
                 
-                Enlace a = this.getEnlace(i);
-                Enlace b = otro.getEnlace(i);
+                Arco a = this.getEnlace(i);
+                Arco b = otro.getEnlace(i);
                 
                 if (a.compareTo(b) != 0) {
                     return -1;
@@ -269,7 +242,7 @@ public class ListaEnlaces extends ArrayList<Enlace> {
         Estado origi;
         Estado desti;
         String simbi;
-        Enlace current;
+        Arco current;
         
         
         result = result + this.getId() + " = { ";
