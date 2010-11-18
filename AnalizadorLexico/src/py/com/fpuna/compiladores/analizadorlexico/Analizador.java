@@ -6,25 +6,21 @@ import py.com.fpuna.compiladores.analizadorlexico.algoritmos.Thompson;
 import py.com.fpuna.compiladores.exceptions.LexicalError;
 
 /**
- * El traductor es el encargado de implementar los procedimientos necesarios
- * para llevar a cabo el proceso de traducción <br> <br>
+ * Esta clase implementa los procedimientos necesarios para llevar a cabo el proceso de traducción.
+ * Se basa en el siguiente BNF para definir un lenguaje de expresiones regulares.
  * 
- * El traductor está basado en el siguiente BNF para definir un lenguaje de 
- * expresiones regulares. <br><br>
- * <ol TYPE=i>
- *   <li>&nbsp RE => resimple A         </li>
- *   <li>&nbsp A  => “|” resimple A | Є </li>
- *   <li>&nbsp resimple => rebasico B   </li>
- *   <li>&nbsp B => rebasico B | Є      </li>
- *   <li>&nbsp rebasico => list op      </li>
- *   <li>&nbsp op => * | + | ? | Є      </li>
- *   <li>&nbsp list => grupo | leng     </li>
- *   <li>&nbsp grupo => “(” RE “)”      </li>
- *   <li>&nbsp leng => [alfabeto del lenguaje] </li>
- * </ol> <br><br>
+ * 1:  simboloInicial -> simple s               [- simboloInicial()  -]
+ * 2:  s  -> “|” simple s | Є                   [- bnf_s()  -]
+ * 3:  simple -> basico t                       [- bnf_simple()  -]
+ * 4:  t -> basico t | Є                        [- bnf_t()  -]
+ * 5:  basico -> list op                        [- bnf_basico()  -]
+ * 6:  op -> * | + | ? | Є                      [- simboloInicial()  -]
+ * 7:  list -> grupo | leng                     [- simboloInicial()  -]
+ * 8:  grupo -> “(” simboloInicial “)”          [- simboloInicial()  -]
+ * 9:  leng -> [alfabeto del lenguaje]          [- simboloInicial()  -]
  * 
- * Se implementa un Traductor Dirigido por la Sintaxis que sigue este BNF y 
- * produce el automata basándose en las construcciones de Thompson. <br><br>
+ * Se implementa un Traductor Dirigido por la Sintaxis que sigue este BNF y produce el automata
+ * basándose en las construcciones de Thompson.
  */
 public final class Analizador {
  
@@ -35,7 +31,7 @@ public final class Analizador {
     private Thompson automata;
     private String Special;
     private int posicion;
-    private boolean hayErrores = false;
+    private boolean error = false;
     private String errMsg = ""; 
 
     
@@ -43,9 +39,7 @@ public final class Analizador {
     }
 
     /**
-     * Constructor del <code>Analizador</code> Sintáctico a partir de la 
-     * expresión regular y el alfabeto de entrada. 
-     * 
+     * Constructor del Analizador Sintáctico
      * @param regex Expresión regular cuyo AFN queremos generar
      * @param alfabeto Alfabeto sobre el cual está definida la expresión regular
      */
@@ -55,75 +49,21 @@ public final class Analizador {
         this.alfabeto = new Alfabeto(alfabeto);        
         this.lexico = new Lexico(regex, alfabeto); // creamos el analizador léxico
         try {
-            // creamos el analizador léxico
             this.preanalisis = nextSymbol(); // obtenemos el primer símbolo desde el analizador léxico
         } catch (LexicalError ex) {
-            this.hayErrores = true;            
-            this.errMsg = 
-                    "Se produjo un error FATAL en el traductor. La generación del AFN no puede continuar\n"+
-                    "--> " + ex.getMessage();
-            
+            this.error = true;
+            this.errMsg = "Error FATAL en el traductor. La generación del AFN no puede continuar\n"+ex.getMessage();
             System.out.println(this.getErrMsg());
-            this.abort();
         }
         automata = new Thompson();
-        //automata.setTipo(TipoAutomata.AFN);
     }
 
-    /**
-     * Implementación del procedimiento que se encarga de parear el símbolo de
-     * preanálisis actual con la entrada esperada según la sintaxis del lenguaje
-     * 
-     * @param tok Símbolo esperado
-     * @throws exceptions.SyntaxError Error de Sintaxis
-     */
-    private void Match(String simbolo) throws LexicalError {
-        
-        Token tok = new Token(simbolo); // se crea un Token temporal para 
-                                        // compararlo con preanalisis
-        
-        if ( getPreanalisis().compareTo(tok) == 0 ) {
-            this.setPreanalisis(this.nextSymbol());
-            this.Special = tok.getValor();
-            this.incPosicion();
-        } else {
-            throw new LexicalError(tok.getValor());
-        }
-    }
-
-    /**
-     * Método que termina de manera instantánea el proceso de análisis y 
-     * traducción cuando se produce un error. <br><br>
-     * 
-     * Inicialmente, el método solo consiste en llamar a la primitiva 
-     * <code>System.exit(0)</code>, pero permite encapsular el comportamiento 
-     * de esta acción para modificarla en el futuro de una sola vez. 
-     */
-    private void abort() {
-        // Do nothing
-    }
-    
-    /**
-     * Llamada al analizador léxico para obtener el siguiente caracter de la 
-     * cadena de entrada <br><br>
-     * 
-     * Si el analizador léxico encuentra un error (como que el caracter no 
-     * pertenece al alfabeto) se atrapa la excepción, se informa en la salida y
-     * se aborta el análisis. <br><br>
-     * @return Token que contiene el símbolo siguiente a procesar
-     */
-    private Token nextSymbol() throws LexicalError {
-        Token result = null; 
-        result = this.lexico.next();
-        return result;        
-    }
-    
     public Thompson traducir() {
-        this.automata = this.RE();
+        this.automata = this.simboloInicial();
         
-        if (!this.isHayErrores()) {
+        if (!this.isError()) {
             if (preanalisis.getTipo() != TipoToken.FIN) {
-                this.hayErrores = true; 
+                this.error = true;
                 this.errMsg = "Quedaron caracteres sin analizar debido al siguiente Token no esperado["+
                         this.getPosicion()+"]: "+preanalisis.getValor();
             }
@@ -131,251 +71,22 @@ public final class Analizador {
         
         return this.automata;
     }
-    
-    /**
-     * Método correspondiente al símbolo inicial de la gramática de expresiones 
-     * regulares. <br><br>
-     * 
-     * Las producciones que pueden ser vacío, retornan un valor null en ese caso. 
-     * Las demás producciones lanzan excepciones que se trasladan a los ámbitos 
-     * de llamada superiores
-     * 
-     * @TODO
-     * - Implementar Exception Management: Acciones a tomar a partir de los 
-     *   distintos tipos de errores
-     * 
-     * @return Autoamata producido por la producción &nbsp RE => resimple A.  
-     *
-     */
-    private Thompson RE() {
-        // automatas auxiliares de producciones llamadas
-        Thompson Aux1 = null;
-        Thompson Aux2;
-        
-        try {
-            Aux1 = this.resimple();
-            Aux2 = this.A();
 
-            if (Aux2 != null) {
-                Aux1.OR(Aux2);
-            }
-        } catch (LexicalError ex) {
-            
-            this.hayErrores = true;  
-            this.errMsg = 
-                    "Se produjo un error FATAL en el traductor. La generación del AFN no puede continuar\n"+
-                    "--> "+ex.getMessage();
-            
-            System.out.println(this.getErrMsg());
-            this.abort();
-        } 
-      
-        if (!(this.hayErrores) ){
-            this.setAutomata(Aux1); // Actualizar el Thompson Global
-            Aux1.setAlpha(this.alfabeto);
-            Aux1.setRegex(this.regex);
-        }
-        return Aux1;
-    }
-
-    /**
-     * Producción A, que permite la recursión necesaria para producir cadenas 
-     * de expresiones regulares separadas por el operador "|" (disyunción) <br><br>
-     * 
-     * @return null si derivó en vacío, en caso contrario, el Thompson generado
-     * @throws exceptions.SyntaxError
-     */
-    private Thompson A() throws LexicalError {
-        try {            
-            Token or = new Token("|");            
-            
-            if (preanalisis.compareTo(or) == 0) {    
-                this.Match("|"); // si preanalisis es el esperado, consumimos, 
-                return RE();            
-            } else {                 
-                return null;    // si es vacío se analiza en otra producción
-            }         
-        } catch (LexicalError ex) {
-            this.hayErrores = true;  
-            throw new LexicalError("se esperaba '|' en lugar de -> "
-                            +this.preanalisis.getValor());            
-        }
-    }
-    
-    /**
-     * Producción resimple
-     * 
-     * @return Thompson producido por la producción
-     * @throws exceptions.SyntaxError
-     * @throws exceptions.LexicalError
-     */
-    private Thompson resimple() throws LexicalError {
-        Thompson Aux1 = this.rebasico();
-        Thompson Aux2 = this.B();
-        
-        if (Aux2 != null) {
-            Aux1.Concat(Aux2);
-        }
-        
-        return Aux1;
-    }
-
-    /**
-     * Producción rebasico. 
-     * @return Thompson generado luego de derivar la producción
-     */
-    private Thompson rebasico() throws LexicalError {
-        
-        Thompson Aux1 = list();
-
-        if (Aux1 != null) {
-            char operator = op();
-
-            switch (operator) {
-                case '*':
-                    Aux1.Kleene();
-                    break;
-                case '+':
-                    Aux1.Plus();
-                    break;
-                case '?':
-                    Aux1.NoneOrOne();
-                    break;
-                case 'E':
-                    break;
-            }
-        } /*else if (preanalisis.) {
-            throw new SyntaxError("se esperaba un símbolo del lenguaje y se encontró: "
-                            +this.preanalisis.getValor(),this.getPosicion());            
-        }*/
-
-        return Aux1;
-    }
-    
-    /**
-     * La producción B debe verificar si preanalisis está en el conjunto primero
-     * de resimple, y si está, volver a ejecutar resimple. En caso contrario debe
-     * retornar null. <br> <br>
-     * 
-     * El conjunto Primero de resimple es {"(",[alpha]}. 
-     * 
-     * @return Thompson el Thompson producido por la producción, o null si la
-     *                  producción deriva en vacío. 
-     * @throws exceptions.SyntaxError
-     * @throws exceptions.LexicalError
-     */
-    private Thompson B() throws  LexicalError {
-        
-        String current = preanalisis.getValor();
-        Thompson result = null;
-       
-        if ( (preanalisis.getTipo() != TipoToken.FIN) &&
-             (this.alfabeto.contiene(current) || current.compareTo("(")==0)
-           ) {
-            result = this.resimple();
-        }
-        
-        return result;
-    }
-    
-    private Thompson list() throws  LexicalError {
-        
-        Token grupofirst = new Token("(");
-        
-        if(preanalisis.compareTo(grupofirst) == 0) {
-            return this.grupo();            
-        } else {
-            return this.leng();
-        }
-    }
-    
-    private char op() throws LexicalError {
-        char operador = 'E';        
-        
-        if (preanalisis.getValor().compareTo("") != 0) {
-            operador = preanalisis.getValor().charAt(0);
-
-            switch (operador) {
-                case '*':
-                    this.Match("*");
-                    break;
-                case '+':
-                    this.Match("+");
-                    break;
-                case '?':
-                    this.Match("?");
-                    break;
-                default:
-                    return 'E';
-            }
-        }
-        return operador;
-    }
-    
-    private Thompson grupo() throws LexicalError {
-        try {
-            this.Match("(");
-        } catch (LexicalError ex) {
-            this.hayErrores = true;  
-            throw new LexicalError("se esperaba el símbolo -> '('");
-        }
-        
-        Thompson Aux1 = this.RE();
-        
-        try {
-            this.Match(")");
-        } catch (LexicalError ex) {
-            this.hayErrores = true;  
-            throw new LexicalError("se esperaba el simbolo -> ')'");
-        }
-        
-        return Aux1;
-    }
-    
-    /**
-     * 
-     * @return
-     */
-    private Thompson leng() throws LexicalError {
-        Thompson nuevo = null;
-        try {
-            if (preanalisis.getTipo() != TipoToken.FIN) {
-                nuevo = new Thompson(preanalisis.getValor(),TipoAutomata.AFN.ordinal());
-                this.Match(preanalisis.getValor());
-            }
-        } catch (LexicalError ex) {
-            this.hayErrores = true;  
-            throw new LexicalError("Error Léxico en [" + this.getPosicion() + "]: el símbolo no pertenece al alfabeto");
-        } catch (Exception ex) {
-            this.hayErrores = true;  
-            throw new LexicalError("Error Léxico en [" + this.getPosicion() + "]: "+ex.getMessage());
-        }
-        
-        return nuevo;
-    }
-    
-    
-    /* ----------------------- GETTERS Y SETTERS ------------------------ */
-    public String getRegex() {
+     public String getRegex() {
         return regex;
     }
 
     public void setRegex(String regex) {
         this.setPosicion(0);
-        this.regex = regex;        
+        this.regex = regex;
         this.lexico = new Lexico(regex, alfabeto); // creamos el analizador léxico
 
         try {
-            // creamos el analizador léxico
             this.preanalisis = nextSymbol(); // obtenemos el primer símbolo desde el analizador léxico
         } catch (LexicalError ex) {
-            this.hayErrores = true;
-            this.errMsg = 
-                    "Se produjo un error FATAL en el traductor. La generación del AFN no puede continuar\n"+
-                    "--> "+ex.getMessage();
-            
+            this.error = true;
+            this.errMsg =  "Error FATAL en el traductor. La generación del AFN no puede continuar\n"+ex.getMessage();
             System.out.println(this.getErrMsg());
-            this.abort();
         }
         automata = new Thompson();
     }
@@ -396,9 +107,6 @@ public final class Analizador {
         this.alfabeto = alfabeto;
     }
 
-    public void setAlfabetoString(String alpha) {
-        this.alfabeto = new Alfabeto(alpha);
-    }
     public Automata getAutomata() {
         return automata;
     }
@@ -414,16 +122,254 @@ public final class Analizador {
     public void setPosicion(int posicion) {
         this.posicion = posicion;
     }
-    
+
     public void incPosicion() {
         this.setPosicion(this.posicion+1);
     }
 
-    public boolean isHayErrores() {
-        return hayErrores;
+    public boolean isError() {
+        return error;
     }
 
     public String getErrMsg() {
         return errMsg;
     }
+
+    /**
+     * Corresponde al símbolo inicial de la gramática de expresiones regulares.
+     * Las producciones que pueden ser vacío, retornan un valor null en ese caso.
+     * @return Autoamata producido por la producción << simboloInicial => simple s >>
+     */
+    private Thompson simboloInicial() {
+
+        Thompson automata1 = null, automata2;
+                
+        try {
+            automata1 = this.bnf_simple();
+            automata2 = this.bnf_s();
+            if (automata2 != null) {
+                automata1.OR(automata2);
+            }
+        } catch (LexicalError ex) {            
+            this.error = true;
+            this.errMsg = "Error FATAL en el traductor. La generación del AFN no puede continuar\n"+ex.getMessage();
+            System.out.println(this.getErrMsg());
+        }       
+        if (!(this.error) ){
+            this.setAutomata(automata1); // Actualizar el Thompson Global
+            automata1.setAlpha(this.alfabeto);
+            automata1.setRegex(this.regex);
+        }
+        return automata1;
+    }
+
+    /**
+     * Segunda producción del BNF que permite la recursión necesaria para producir cadenas
+     * de expresiones regulares separadas por el operador "|" (disyunción) 
+     * @return null si derivó en vacío, en caso contrario, el Thompson generado
+     * @throws LexicalError
+     */
+    private Thompson bnf_s() throws LexicalError {
+        try {            
+            Token or = new Token("|");
+            if (preanalisis.compareTo(or) == 0) {    
+                this.matching("|"); // si preanalisis es el esperado, consumimos,
+                return simboloInicial();
+            } else {                 
+                return null;    // si es vacío se analiza en otra producción
+            }         
+        } catch (LexicalError ex) {
+            this.error = true;
+            throw new LexicalError("se esperaba '|' en lugar de "+this.preanalisis.getValor());            
+        }
+    }
+    
+    /**
+     * Tercera producción del BNF
+     * @return Thompson producido por la producción
+     */
+    private Thompson bnf_simple() throws LexicalError {
+
+        Thompson automata1 = this.bnf_basico();
+        Thompson automata2 = this.bnf_t();
+        if (automata2 != null) {
+            automata1.Concat(automata2);
+        }
+        
+        return automata1;
+    }
+
+    /**
+     * La cuarta producción comprueba si preanalisis está en el conjunto primero
+     * de simple, y si está, volver a ejecutar bnf_simple. En caso contrario retorna null.
+     * El conjunto Primero de resimple es {"(",[alpha]}.
+     * @return Thompson producido por la producción, o null si la producción deriva en vacío.
+     * @throws LexicalError
+     */
+    private Thompson bnf_t() throws  LexicalError {
+
+        String current = preanalisis.getValor();
+        Thompson result = null;
+        if ( (preanalisis.getTipo() != TipoToken.FIN) &&
+             (this.alfabeto.contiene(current) || current.compareTo("(")==0)
+           ) {
+            result = this.bnf_simple();
+        }
+        return result;
+    }
+
+    /**
+     * Quinta producción del BNF
+     * @return
+     * @throws LexicalError
+     */
+    private Thompson bnf_basico() throws LexicalError{
+        Thompson automata1 = list();
+
+        if (automata1 != null) {
+            char operator = op();
+            switch (operator) {
+                case '*':
+                    automata1.Kleene();
+                    break;
+                case '+':
+                    automata1.Plus();
+                    break;
+                case '?':
+                    automata1.NoneOrOne();
+                    break;
+                case 'E':
+                    break;
+            }
+        }
+        return automata1;
+    }       
+
+    /**
+     * Sexta producción
+     * @return
+     * @throws LexicalError
+     */
+    private char op() throws LexicalError {
+        char operador = 'E';        
+        
+        if (preanalisis.getValor().compareTo("") != 0) {
+            operador = preanalisis.getValor().charAt(0);
+
+            switch (operador) {
+                case '*':
+                    this.matching("*");
+                    break;
+                case '+':
+                    this.matching("+");
+                    break;
+                case '?':
+                    this.matching("?");
+                    break;
+                default:
+                    return 'E';
+            }
+        }
+        return operador;
+    }
+
+    /**
+     * Producción 7
+     * @return
+     * @throws LexicalError
+     */
+    private Thompson list() throws  LexicalError {
+
+        Token grupofirst = new Token("(");
+
+        if(preanalisis.compareTo(grupofirst) == 0) {
+            return this.grupo();
+        } else {
+            return this.leng();
+        }
+    }
+
+    /**
+     * Producción 8
+     * @return
+     * @throws LexicalError
+     */
+    private Thompson grupo() throws LexicalError {
+        try {
+            this.matching("(");
+        } catch (LexicalError ex) {
+            this.error = true;
+            throw new LexicalError("se esperaba el símbolo -> '('");
+        }
+        
+        Thompson Aux1 = this.simboloInicial();
+        
+        try {
+            this.matching(")");
+        } catch (LexicalError ex) {
+            this.error = true;
+            throw new LexicalError("se esperaba el simbolo -> ')'");
+        }
+        
+        return Aux1;
+    }
+    
+    /**
+     * Producción 9
+     * @return
+     * @throws LexicalError
+     */
+    private Thompson leng() throws LexicalError {
+        Thompson nuevo = null;
+        try {
+            if (preanalisis.getTipo() != TipoToken.FIN) {
+                nuevo = new Thompson(preanalisis.getValor(),TipoAutomata.AFN.ordinal());
+                this.matching(preanalisis.getValor());
+            }
+        } catch (LexicalError ex) {
+            this.error = true;
+            throw new LexicalError("Error Léxico en [" + this.getPosicion() + "]: el símbolo no pertenece al alfabeto");
+        } catch (Exception ex) {
+            this.error = true;
+            throw new LexicalError("Error Léxico en [" + this.getPosicion() + "]: "+ex.getMessage());
+        }
+
+        return nuevo;
+    }
+
+   /**
+     * Llamada al analizador léxico para obtener el sgte caracter de la cadena de entrada.
+     * Si el analizador léxico encuentra un error (como que el caracter no
+     * pertenece al alfabeto) se atrapa la excepción, se informa en la salida y
+     * se aborta el análisis. <br><br>
+     * @return Token que contiene el símbolo siguiente a procesar
+     * @exception LexicalError
+     */
+    private Token nextSymbol() throws LexicalError {
+        Token result = null;
+        result = this.lexico.next();
+        return result;
+    }
+   
+    /**
+     * Implementación del procedimiento que se encarga de parear el símbolo de
+     * preanálisis actual con la entrada esperada según la sintaxis del lenguaje
+     *
+     * @param simbolo Símbolo esperado
+     * @throws LexicalError
+     */
+    private void matching(String simbolo) throws LexicalError {
+
+        Token tok = new Token(simbolo); // se crea un Token temporal para
+                                        // compararlo con preanalisis
+
+        if ( getPreanalisis().compareTo(tok) == 0 ) {
+            this.setPreanalisis(this.nextSymbol());
+            this.Special = tok.getValor();
+            this.incPosicion();
+        } else {
+            throw new LexicalError(tok.getValor());
+        }
+    }    
+
 }

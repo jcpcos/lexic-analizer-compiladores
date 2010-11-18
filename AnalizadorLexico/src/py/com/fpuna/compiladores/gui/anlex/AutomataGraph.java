@@ -34,7 +34,7 @@ public class AutomataGraph extends JGraph{
         super(model);
         this.automata = a;
         
-        //Imprimimos en consola para verificar.
+        //Imprimir en consola.
         System.out.println("El automata que se dibujara es\n_____________________\n");
         System.out.println(a.imprimir());       
         convertirJgraph(); //Convertimos y dibujamos con jgraph.
