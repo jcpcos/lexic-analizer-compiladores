@@ -20,82 +20,78 @@ public class Subconjunto {
     private ArrayList<ListaEstados> listaEstados;
 
     public Subconjunto(Thompson a) {
-        automataSubconj = a;
+        automataSubconj = a; //donde a sería el AFN
         afdMatrix = new TransitionMatrix();
-        listaEstados = new ArrayList();
+        listaEstados = new ArrayList();  //la lista de estadosD (estados en el AFD)
     }
 
+    //construcción de subconjuntos (Fig 3.25)
     public TransitionMatrix ejecutar() throws AutomataException {
         Iterator it;
         Token simbolo;
-        ListaEstados lista_1;
-        int i = 0;
+        ListaEstados lista_1; 
+        int i = 0; //para el id de la lista listaEstados
 
-        Estado est_inicial = automataSubconj.getEstados().getEstadoInicial();
+        Estado est_inicial = automataSubconj.getEstados().getEstadoInicial(); //obtiene el estado inicial de la entrada que fue el AFN
         ListaEstados lista_2 = cerradura_empty(est_inicial, new ListaEstados());
         lista_2.setId(0);
-        listaEstados.add(lista_2);
+        listaEstados.add(lista_2); //al inicio, lo q está en lista_2 es el único estado dentro de listaEstados y no está marcado
+        ListaEstados lista_3 = estadoSinMarcar();
 
-        while (hayEstadosSinMarcar()) {
+        while (lista_3!=null) { //mientras haya un estado no marcado lista_3 en listaEstados
             TransitionMatrixKey clave;
-            ListaEstados lista_3 = estadoSinMarcar();
-            lista_3.setMarcado(true);
+            System.out.println(lista_3);
+            lista_3.setMarcado(true); //marcar T
 
             it = automataSubconj.getAlpha().iterator();
-            while (it.hasNext()) {
+            while (it.hasNext()) { //itera sobre el alfabeto de símbolos de entrada
                 simbolo = new Token((String) it.next());
-                lista_1 = cerradura_empty(mover(lista_3, simbolo));
+                lista_1 = cerradura_empty(mueve(lista_3, simbolo));
                 if (lista_1 == null) {
                     continue;
                 }
-                int id_U = estaEnDestados(lista_1);
-                if (id_U == -1) {
-                    lista_1.setMarcado(false);
+                int id_U = estaEnEstadosD(lista_1);
+                if (id_U == -1) { //si lista_1 no está en listaEstados (estadosD en el pseudocódigo)
+                    lista_1.setMarcado(false); //añadir lista_1 como estado no-marcado a listaEstados
                     lista_1.setId(listaEstados.size());
                     listaEstados.add(lista_1);
                 } else {
-                    lista_1.setId(id_U);
+                    lista_1.setId(id_U); 
                 }
                 clave = new TransitionMatrixKey(lista_3, simbolo);
                 afdMatrix.setValor(clave, lista_1);
             }
-            System.out.println("iteracion " + i++);
+            lista_3 = estadoSinMarcar();
+            //System.out.println("iteracion " + i++);
         }
-        System.out.println("aca no llega");
+        //System.out.println("aca no llega");
         return this.afdMatrix;
     }
 
     /**
-     * Implementa el  algoritmo "e_cerradura(s)", partiendo de un estado s
-     * retorna una lista de estados formada en el recorrido desde el estado s
-     * por todos los enlaces vacíos.
-     *
+     * Cálculo de cerradura-e (Fig 2.6)
      * @param s Estado que se agrega y recorre por sus vacios.
      * @param listaCurr lista de estados donde se van agregando. Al inicio está vacia
      * @return La lista de estados por los que se recorre mediante vacio desde el estado "s"
      */
     public ListaEstados cerradura_empty(Estado s, ListaEstados listaCurr) {
-        Iterator it = s.getEnlaces().getIterator();
+        Iterator it = s.getEnlaces().getIterator(); //todos los enlaces del estado s
         ListaEstados listaNew = null;
-        while (it.hasNext()) {
-            Arco e = (Arco) it.next();
+        while (it.hasNext()) { //mientras haya arco
+            Arco e = (Arco) it.next(); //sería lo correspondiente a sacar un elemento de la pila
             if (e.getEtiqueta().compareTo(Automata.EMPTY) == 0) { //si la etiqueta del enlace es EMPTY
                 listaNew = cerradura_empty(e.getDestino(), listaCurr);
-                listaCurr = concatListas(listaCurr, listaNew);
+                listaCurr = unirListas(listaCurr, listaNew);
 
             }
         }
-        listaCurr.insertar(s);
+        listaCurr.insertar(s); //lo correspondiente a meter el estado u en la pila
         return listaCurr;
     }
 
     /***
-     *  Implementacion de e_cerradura(ListaEstados) del Algoritmo de Subconjuntos.
-     *  Recibe una lista de estados y por cada estado aplica el
-     * e_cerradura(estado, new ListaEstados()).
-     *  Es decir, por cada estado de la lista recibida se recorre recursivamente por
-     * los enlaces "vacio" y se genera una nueva lista.
-     *
+     * Por cada estado de la lista recibida se recorre recursivamente por los
+     * enlaces "vacio" y se genera una nueva lista.
      * @param T
      * @return
      */
@@ -110,7 +106,7 @@ public class Subconjunto {
 
         while (it.hasNext()) {
             act = (Estado) it.next();
-            lista_ret = concatListas(lista_ret, cerradura_empty(act, new ListaEstados()));
+            lista_ret = unirListas(lista_ret, cerradura_empty(act, new ListaEstados()));
         }
 
         return lista_ret;
@@ -126,7 +122,7 @@ public class Subconjunto {
      * @param a Símbolo del alfabeto.
      * @return Lista de Estados alos que se puede ir por a desde c/ estado en T
      */
-    public ListaEstados mover(ListaEstados T, Token a) {
+    public ListaEstados mueve(ListaEstados T, Token a) {
         Iterator itEstados = null;
         Iterator itEnlaces = null;
         Estado estado = null;
@@ -152,75 +148,19 @@ public class Subconjunto {
         }
     }
 
-    /**
-     * Verifica si existe algún estado sin marcar en Destados.
-     * Es la condición de parada del algoritmo de subconjuntos.
-     *
-     * @return
-     */
-    private boolean hayEstadosSinMarcar() {
-        Iterator it = listaEstados.iterator();
-        ListaEstados list_est;
-        while (it.hasNext()) {
-            list_est = (ListaEstados) it.next();
-            if (!list_est.isMarcado()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Retorna el primer estado sin marcar que encuentra en Destados.
-     * Si no existe ninguno sin marcar, lanza una excepción.
-     *
-     * @return
-     * @throws exceptions.AutomataException
-     */
-    private ListaEstados estadoSinMarcar() throws AutomataException {
-        Iterator it = listaEstados.iterator();
-        ListaEstados list_est;
-        while (it.hasNext()) {
-            list_est = (ListaEstados) it.next();
-            if (!list_est.isMarcado()) {
-                return list_est;
-            }
-        }
-        throw new AutomataException("No hay Lista de Estados sin marcar en Destados.");
-    }
-
-    /***
-     * Metodo que retorna el id de la lista de estados U dentro de
-     * Destados, si es que U no esta en la lista de estados retorna -1.
-     *
-     * @param U Lista de estados
-     * @return El id de la lista U dentro de Destados
-     */
-    private int estaEnDestados(ListaEstados U) {
-        Iterator it = listaEstados.iterator();
-        ListaEstados tmp;
-        while (it.hasNext()) {
-            tmp = (ListaEstados) it.next();
-            if (tmp.compareTo(U) == 0) {
-                return tmp.getId();
-            }
-        }
-        return -1;
-    }
-
-    public static ListaEstados concatListas(ListaEstados A, ListaEstados B) {
-        ListaEstados ret = new ListaEstados();
+    public static ListaEstados unirListas(ListaEstados A, ListaEstados B) {
+        ListaEstados new_list = new ListaEstados();
         Iterator it;
-        Estado est_tmp, test;
+        Estado est_tmp;
 
         if (A != null) {
             it = A.getIterator();
             while (it.hasNext()) {
                 est_tmp = (Estado) it.next();
                 try {
-                    ret.getEstadoById(est_tmp.getId());
+                    new_list.getEstadoById(est_tmp.getId());
                 } catch (Exception ex) {
-                    ret.insertar(est_tmp);
+                    new_list.insertar(est_tmp);
                 }
             }
         }
@@ -230,14 +170,14 @@ public class Subconjunto {
             while (it.hasNext()) {
                 est_tmp = (Estado) it.next();
                 try {
-                    ret.getEstadoById(est_tmp.getId());
+                    new_list.getEstadoById(est_tmp.getId());
                 } catch (Exception ex) {
-                    ret.insertar(est_tmp);
+                    new_list.insertar(est_tmp);
                 }
             }
         }
 
-        return ret;
+        return new_list;
     }
 
     /**
@@ -291,5 +231,44 @@ public class Subconjunto {
                 visitarRecursivo(enlace.getDestino());
             }
         }
+    }
+    
+    /**
+     * Retorna el primer estado sin marcar que encuentra en listaEstados.
+     * Si no existe ninguno sin marcar, lanza una excepción.
+     *
+     * @return
+     * @throws exceptions.AutomataException
+     */
+    private ListaEstados estadoSinMarcar() throws AutomataException {
+        Iterator it = listaEstados.iterator();
+        ListaEstados list_est;
+        while (it.hasNext()) {
+            list_est = (ListaEstados) it.next();
+            if (!list_est.isMarcado()) {
+                return list_est;
+            }
+        }
+       // throw new AutomataException("No hay lista de estados sin marcar en listaEstados.");
+        return null;
+    }
+
+    /***
+     * Metodo que retorna el id de la lista de estados U dentro de
+     * listaEstados, si es que U no esta en la lista de estados retorna -1.
+     *
+     * @param U Lista de estados
+     * @return El id de la lista U dentro de Destados
+     */
+    private int estaEnEstadosD(ListaEstados U) {
+        Iterator it = listaEstados.iterator();
+        ListaEstados tmp;
+        while (it.hasNext()) {
+            tmp = (ListaEstados) it.next();
+            if (tmp.compareTo(U) == 0) {
+                return tmp.getId();
+            }
+        }
+        return -1;
     }
 }

@@ -8,7 +8,7 @@ import py.com.fpuna.compiladores.exceptions.AutomataException;
 
 
 public class ListaEstados extends ArrayList<Estado>{
-    private int id; 
+    
     
     public void setId(int id) {
         this.id = id;
@@ -238,11 +238,6 @@ public class ListaEstados extends ArrayList<Estado>{
     }
 
     /**
-     * Holds value of property marcado.
-     */
-    private boolean marcado;
-
-    /**
      * Getter for property marcado.
      * @return Value of property marcado.
      */
@@ -258,5 +253,6 @@ public class ListaEstados extends ArrayList<Estado>{
         this.marcado = marcado;
     }
 
-
+    private int id;
+    private boolean marcado;
 }

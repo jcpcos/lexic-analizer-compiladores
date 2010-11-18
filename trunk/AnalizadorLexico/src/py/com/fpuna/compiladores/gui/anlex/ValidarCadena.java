@@ -84,7 +84,7 @@ public class ValidarCadena {
         this.estadosAFN.add(listState);
 
         while (symbol.compareToIgnoreCase("")!=0) {
-            listState = subconjunto.mover(listState, new Token(symbol));
+            listState = subconjunto.mueve(listState, new Token(symbol));
             listState = subconjunto.cerradura_empty(listState);
 
             if (listState == null || listState.size() == 0) {

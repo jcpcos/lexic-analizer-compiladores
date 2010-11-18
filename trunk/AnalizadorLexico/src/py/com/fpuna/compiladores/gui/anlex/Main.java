@@ -795,13 +795,13 @@ public class Main extends javax.swing.JFrame {
             txtMensajes.append("# Generando el AFN...\n");
             Analizador traductor = new Analizador(regExp, alfabeto);
 
-            Errors = traductor.isHayErrores();
+            Errors = traductor.isError();
             // 1. Generar el AFN
             if (!Errors) {
                 afn = traductor.traducir();
             }
 
-            Errors = traductor.isHayErrores();
+            Errors = traductor.isError();
 
             // 1.2. Verificar si hubieron errores.
             if (Errors) {
@@ -814,7 +814,7 @@ public class Main extends javax.swing.JFrame {
                 // 2. Generar el AFD
                 txtMensajes.append("# Generando el AFD...\n");
                 Subconjunto subconjunto;
-                TransitionMatrix transMatriz;
+                TransitionMatrix transMatriz; //la tabla de transiciones que se construye según el alg 3.2
 
                 try {
                     subconjunto = new Subconjunto(afn);

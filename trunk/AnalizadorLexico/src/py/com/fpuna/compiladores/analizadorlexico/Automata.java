@@ -17,13 +17,13 @@ public class Automata {
         AFD,
         AFDMin
     }
+    public static final String EMPTY = " [ empty ] ";
+    public int tipoAutomata;
     private ListaEstados listaEstados;
     private ListaEstados listaEstadosFinales;
-    private Estado estadoInicial;
-    public int tipoAutomata;
+    private Estado estadoInicial;    
     private String regex;
     private ArrayList<String> alphabet;
-    public static final String EMPTY = " [ empty ] ";
 
     public Automata() {
         listaEstados = new ListaEstados();
@@ -50,18 +50,7 @@ public class Automata {
         this(simbolo);
         this.tipoAutomata = tipo;
     }
-
-    private void eliminarEstado(Estado e) {
-        for (Estado est : this.listaEstados) {
-            for (Arco enlace : est.getEnlaces()) {
-                if (e.getId() != est.getId() && enlace.getDestino().getId()
-                        == e.getId()) {
-                    est.eliminarEnlace(enlace);
-                }
-            }
-        }
-    }
-
+    
     public void eliminarIslas() {
         for (Estado e : this.getEstados()) {
             if (e.esIsla()) {
@@ -160,11 +149,9 @@ public class Automata {
 
     }
 
-    /* TEST */
     public String imprimir() {
 
         String result = "";
-
         Iterator it = this.listaEstados.getIterator();
         while (it.hasNext()) {
             Estado e = (Estado) it.next();
@@ -173,12 +160,9 @@ public class Automata {
             if (e.isEstadoinicial()) {
                 result += "(ini)";
             }
-
             if (e.isEstadofinal()) {
                 result += "(fin)";
             }
-
-
             result += "\n";
 
             Iterator itenlaces = e.getEnlaces().getIterator();
@@ -203,105 +187,20 @@ public class Automata {
         return ret;
     }
 
-    /**
-     * Genera un String que puede ser utilizado para graficar con el GraphViz<br><br>
-     *
-     * Ejemplo: <br><br>
-     * <code>
-     * digraph test123 {
-     *         a -> b -> c;
-     *         a -> {x y};
-     *         b [shape=box];
-     *         c [label="hello\nworld",color=blue,fontsize=24,
-     *              fontname="Palatino-Italic",fontcolor=red,style=filled];
-     *         a -> z [label="hi", weight=100];
-     *         x -> z [label="multi-line\nlabel"];
-     *         edge [style=dashed,color=red];
-     *         b -> x;
-     *         {rank=same; b x}
-     * }
-     * </code>
-     *
-     * @return String del grafo formateado para dot (GraphViz)
-     */
-    public String imprimirGraphViz() {
-
-        String result_header = "Digraph AFN {\n"
-                + "\trankdir=LR;\n\toverlap=scale;\n";
-
-        String result_nodes = "";
-        String result_edges = "";
-
-        Iterator it = this.listaEstados.getIterator();
-        while (it.hasNext()) {
-            Estado e = (Estado) it.next();
-            String shape = "circle";
-
-            if (e.isEstadofinal()) {
-                shape = "doublecircle";
-            }
-
-            result_nodes += e.getId() + " [shape=" + shape + "];\n";
-
-            shape = "circle";
-
-            Iterator itenlaces = e.getEnlaces().getIterator();
-            while (itenlaces.hasNext()) {
-
-                Arco enlace = (Arco) itenlaces.next();
-
-                Estado orig = enlace.getOrigen();
-                Estado dest = enlace.getDestino();
-                String label = enlace.getEtiqueta();
-
-                result_edges += orig.getId() + " -> " + dest.getId()
-                        + " [label = \"" + label + "\" ];\n";
-
-            }
-        }
-        String result = result_header + result_nodes + result_edges + "}";
-        return result;
-    }
-
-    /**
-     * Genera un automata sencillo de prueba.
-     * @return
-     */
-    public static Automata dameAutomata() {
-        Automata A1 = new Automata();
-        A1.listaEstados.insertar(new Estado(0, true, false, false));
-        A1.listaEstados.insertar(new Estado(1, true, false, false));
-        A1.listaEstados.insertar(new Estado(2, true, false, false));
-        A1.listaEstados.insertar(new Estado(3, true, false, false));
-        A1.listaEstados.insertar(new Estado(4, true, false, false));
-        A1.listaEstados.insertar(new Estado(5, true, false, false));
-
-        //Estado 0
-        A1.listaEstados.getEstadoById(0).addEnlace(new Arco(A1.listaEstados.getEstadoById(0),
-                A1.listaEstados.getEstadoById(1), "a"));
-
-        A1.listaEstados.getEstadoById(0).addEnlace(new Arco(A1.listaEstados.getEstadoById(0),
-                A1.listaEstados.getEstadoById(2), "b"));
-
-
-        //Estado 1 y 2
-        A1.listaEstados.getEstadoById(1).addEnlace(new Arco(A1.listaEstados.getEstadoById(1),
-                A1.listaEstados.getEstadoById(3), "a"));
-
-        A1.listaEstados.getEstadoById(2).addEnlace(new Arco(A1.listaEstados.getEstadoById(2),
-                A1.listaEstados.getEstadoById(4), "a"));
-
-
-        //Estado 3 y 4
-        A1.listaEstados.getEstadoById(3).addEnlace(new Arco(A1.listaEstados.getEstadoById(3),
-                A1.listaEstados.getEstadoById(5), "b"));
-
-        A1.listaEstados.getEstadoById(4).addEnlace(new Arco(A1.listaEstados.getEstadoById(4),
-                A1.listaEstados.getEstadoById(5), "a"));
-        return A1;
-    }
-
     public void addEstado(Estado e) {
         this.listaEstados.insertar(e);
     }
+
+    private void eliminarEstado(Estado e) {
+        for (Estado est : this.listaEstados) {
+            for (Arco enlace : est.getEnlaces()) {
+                if (e.getId() != est.getId() && enlace.getDestino().getId()
+                        == e.getId()) {
+                    est.eliminarEnlace(enlace);
+                }
+            }
+        }
+    }
+
+
 }
