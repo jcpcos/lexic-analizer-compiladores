@@ -748,11 +748,12 @@ public class Main extends javax.swing.JFrame {
 
     private void validarBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_validarBtnActionPerformed
         // TODO add your handling code here:
+        System.out.println("selectedIndex : " + jComboBoxValidation.getSelectedIndex());
         switch(this.jComboBoxValidation.getSelectedIndex()) {
-            case 2: this.validationResult = this.validarCadena(this.afd);
+            case 1: this.validationResult = this.validarCadena(this.afd);
                 this.textResultadoValidacion(this.validationResult, "AFD");
                 break;
-            case 3: this.validationResult = this.validarCadena(this.afdMin);
+            case 2: this.validationResult = this.validarCadena(this.afdMin);
                 this.textResultadoValidacion(this.validationResult, "AFDmin");
                 break;
             default:
