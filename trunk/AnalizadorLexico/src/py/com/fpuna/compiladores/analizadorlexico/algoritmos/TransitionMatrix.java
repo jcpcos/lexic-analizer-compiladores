@@ -1,7 +1,6 @@
 package py.com.fpuna.compiladores.analizadorlexico.algoritmos;
 
 import java.util.HashMap;
-import py.com.fpuna.compiladores.analizadorlexico.Automata;
 import py.com.fpuna.compiladores.analizadorlexico.Token;
 import py.com.fpuna.compiladores.analizadorlexico.automata.Arco;
 import py.com.fpuna.compiladores.analizadorlexico.automata.Estado;
