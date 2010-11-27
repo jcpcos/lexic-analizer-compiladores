@@ -173,7 +173,7 @@ public class Minimizacion {
 
 
    /**
-    * Método mágico que genera una clave que sera la clave de un hash
+    * Método que genera una clave que sera la clave de un hash
     * que tendrá las sublistas que pertenecen a un mismo grupo.
     * Todas las listas que  generen el mismo hash tendrán la misma clave y por
     * ende estarán en la misma lista dentro del hash.

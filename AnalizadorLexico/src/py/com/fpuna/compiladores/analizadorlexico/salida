@@ -1,0 +1,2571 @@
+package py.com.fpuna.compiladores.analizadorlexico;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+
+/**
+ *
+ * @author markos
+ */
+public class Alfabeto extends ArrayList<String>  {
+
+    public Alfabeto(String simbolos) {
+        String tmp;
+        for (int i = 0; i < simbolos.length(); i++) {
+            tmp = "" + simbolos.charAt(i);
+
+            if (!this.contains(tmp) && tmp.length() > 0) {
+                this.add(tmp);
+            }
+        }
+        this.ordenar();
+    }
+
+    public Iterator getIterator() {
+        return this.iterator();
+    }
+
+    public int getTamanho() {
+        return this.size();
+    }
+
+    public boolean contiene(String simbolo) {
+        return this.contains(simbolo);
+    }
+
+    public String imprimir() {
+
+        String result = "{ ";
+        for (int i = 0; i < this.size(); i++) {
+
+            result += this.get(i);
+
+            if (!(i == (this.size() - 1))) {
+                result += ", ";
+            }
+        }
+
+        return result + " } ";
+
+    }
+
+    private void ordenar() {
+        String a[] = new String[1];
+        a = this.toArray(a);
+        java.util.Arrays.sort(a);
+
+        this.removeAll(this);
+        this.addAll(Arrays.asList(a));
+    }
+}
+package py.com.fpuna.compiladores.analizadorlexico;
+
+import py.com.fpuna.compiladores.analizadorlexico.Automata.TipoAutomata;
+import py.com.fpuna.compiladores.analizadorlexico.Token.TipoToken;
+import py.com.fpuna.compiladores.analizadorlexico.algoritmos.Thompson;
+import py.com.fpuna.compiladores.exceptions.LexicalError;
+
+/**
+ * Esta clase implementa los procedimientos necesarios para llevar a cabo el proceso de traducción.
+ * Se basa en el siguiente BNF para definir un lenguaje de expresiones regulares.
+ * 
+ * 1:  simboloInicial -> simple s               [- simboloInicial()  -]
+ * 2:  s  -> “|” simple s | Є                   [- bnf_s()  -]
+ * 3:  simple -> basico t                       [- bnf_simple()  -]
+ * 4:  t -> basico t | Є                        [- bnf_t()  -]
+ * 5:  basico -> list op                        [- bnf_basico()  -]
+ * 6:  op -> * | + | ? | Є                      [- simboloInicial()  -]
+ * 7:  list -> grupo | leng                     [- simboloInicial()  -]
+ * 8:  grupo -> “(” simboloInicial “)”          [- simboloInicial()  -]
+ * 9:  leng -> [alfabeto del lenguaje]          [- simboloInicial()  -]
+ * 
+ * Se implementa un Traductor Dirigido por la Sintaxis que sigue este BNF y produce el automata
+ * basándose en las construcciones de Thompson.
+ */
+public final class Analizador {
+ 
+    private Lexico lexico;
+    private String regex;
+    private Token preanalisis;
+    private Alfabeto alfabeto;
+    private Thompson automata;
+    private String Special;
+    private int posicion;
+    private boolean error = false;
+    private String errMsg = ""; 
+
+    
+    public Analizador() {
+    }
+
+    /**
+     * Constructor del Analizador Sintáctico
+     * @param regex Expresión regular cuyo AFN queremos generar
+     * @param alfabeto Alfabeto sobre el cual está definida la expresión regular
+     */
+    public Analizador(String regex, String alfabeto) {
+        this.setPosicion(0);
+        this.regex = regex;        
+        this.alfabeto = new Alfabeto(alfabeto);        
+        this.lexico = new Lexico(regex, alfabeto); // creamos el analizador léxico
+        try {
+            this.preanalisis = nextSymbol(); // obtenemos el primer símbolo desde el analizador léxico
+        } catch (LexicalError ex) {
+            this.error = true;
+            this.errMsg = "Error FATAL en el traductor. La generación del AFN no puede continuar\n"+ex.getMessage();
+            System.out.println(this.getErrMsg());
+        }
+        automata = new Thompson();
+    }
+
+    public Thompson traducir() {
+        this.automata = this.simboloInicial();
+        
+        if (!this.isError()) {
+            if (preanalisis.getTipo() != TipoToken.FIN) {
+                this.error = true;
+                this.errMsg = "Quedaron caracteres sin analizar debido al siguiente Token no esperado["+
+                        this.getPosicion()+"]: "+preanalisis.getValor();
+            }
+        }
+        
+        return this.automata;
+    }
+
+     public String getRegex() {
+        return regex;
+    }
+
+    public void setRegex(String regex) {
+        this.setPosicion(0);
+        this.regex = regex;
+        this.lexico = new Lexico(regex, alfabeto); // creamos el analizador léxico
+
+        try {
+            this.preanalisis = nextSymbol(); // obtenemos el primer símbolo desde el analizador léxico
+        } catch (LexicalError ex) {
+            this.error = true;
+            this.errMsg =  "Error FATAL en el traductor. La generación del AFN no puede continuar\n"+ex.getMessage();
+            System.out.println(this.getErrMsg());
+        }
+        automata = new Thompson();
+    }
+
+    public Token getPreanalisis() {
+        return preanalisis;
+    }
+
+    public void setPreanalisis(Token preanalisis) {
+        this.preanalisis = preanalisis;
+    }
+
+    public Alfabeto getAlfabeto() {
+        return alfabeto;
+    }
+
+    public void setAlfabeto(Alfabeto alfabeto) {
+        this.alfabeto = alfabeto;
+    }
+
+    public Automata getAutomata() {
+        return automata;
+    }
+
+    public void setAutomata(Thompson Aut) {
+        this.automata = Aut;
+    }
+
+    public int getPosicion() {
+        return posicion;
+    }
+
+    public void setPosicion(int posicion) {
+        this.posicion = posicion;
+    }
+
+    public void incPosicion() {
+        this.setPosicion(this.posicion+1);
+    }
+
+    public boolean isError() {
+        return error;
+    }
+
+    public String getErrMsg() {
+        return errMsg;
+    }
+
+    /**
+     * Corresponde al símbolo inicial de la gramática de expresiones regulares.
+     * Las producciones que pueden ser vacío, retornan un valor null en ese caso.
+     * @return Autoamata producido por la producción << simboloInicial => simple s >>
+     */
+    private Thompson simboloInicial() {
+
+        Thompson automata1 = null, automata2;
+                
+        try {
+            automata1 = this.bnf_simple();
+            automata2 = this.bnf_s();
+            if (automata2 != null) {
+                automata1.OR(automata2);
+            }
+        } catch (LexicalError ex) {            
+            this.error = true;
+            this.errMsg = "Error FATAL en el traductor. La generación del AFN no puede continuar\n"+ex.getMessage();
+            System.out.println(this.getErrMsg());
+        }       
+        if (!(this.error) ){
+            this.setAutomata(automata1); // Actualizar el Thompson Global
+            automata1.setAlpha(this.alfabeto);
+            automata1.setRegex(this.regex);
+        }
+        return automata1;
+    }
+
+    /**
+     * Segunda producción del BNF que permite la recursión necesaria para producir cadenas
+     * de expresiones regulares separadas por el operador "|" (disyunción) 
+     * @return null si derivó en vacío, en caso contrario, el Thompson generado
+     * @throws LexicalError
+     */
+    private Thompson bnf_s() throws LexicalError {
+        try {            
+            Token or = new Token("|");
+            if (preanalisis.compareTo(or) == 0) {    
+                this.matching("|"); // si preanalisis es el esperado, consumimos,
+                return simboloInicial();
+            } else {                 
+                return null;    // si es vacío se analiza en otra producción
+            }         
+        } catch (LexicalError ex) {
+            this.error = true;
+            throw new LexicalError("se esperaba '|' en lugar de "+this.preanalisis.getValor());            
+        }
+    }
+    
+    /**
+     * Tercera producción del BNF
+     * @return Thompson producido por la producción
+     */
+    private Thompson bnf_simple() throws LexicalError {
+
+        Thompson automata1 = this.bnf_basico();
+        Thompson automata2 = this.bnf_t();
+        if (automata2 != null) {
+            automata1.Concat(automata2);
+        }
+        
+        return automata1;
+    }
+
+    /**
+     * La cuarta producción comprueba si preanalisis está en el conjunto primero
+     * de simple, y si está, volver a ejecutar bnf_simple. En caso contrario retorna null.
+     * El conjunto Primero de resimple es {"(",[alpha]}.
+     * @return Thompson producido por la producción, o null si la producción deriva en vacío.
+     * @throws LexicalError
+     */
+    private Thompson bnf_t() throws  LexicalError {
+
+        String current = preanalisis.getValor();
+        Thompson result = null;
+        if ( (preanalisis.getTipo() != TipoToken.FIN) &&
+             (this.alfabeto.contiene(current) || current.compareTo("(")==0)
+           ) {
+            result = this.bnf_simple();
+        }
+        return result;
+    }
+
+    /**
+     * Quinta producción del BNF
+     * @return
+     * @throws LexicalError
+     */
+    private Thompson bnf_basico() throws LexicalError{
+        Thompson automata1 = list();
+
+        if (automata1 != null) {
+            char operator = op();
+            switch (operator) {
+                case '*':
+                    automata1.Kleene();
+                    break;
+                case '+':
+                    automata1.Plus();
+                    break;
+                case '?':
+                    automata1.NoneOrOne();
+                    break;
+                case 'E':
+                    break;
+            }
+        }
+        return automata1;
+    }       
+
+    /**
+     * Sexta producción
+     * @return
+     * @throws LexicalError
+     */
+    private char op() throws LexicalError {
+        char operador = 'E';        
+        
+        if (preanalisis.getValor().compareTo("") != 0) {
+            operador = preanalisis.getValor().charAt(0);
+
+            switch (operador) {
+                case '*':
+                    this.matching("*");
+                    break;
+                case '+':
+                    this.matching("+");
+                    break;
+                case '?':
+                    this.matching("?");
+                    break;
+                default:
+                    return 'E';
+            }
+        }
+        return operador;
+    }
+
+    /**
+     * Producción 7
+     * @return
+     * @throws LexicalError
+     */
+    private Thompson list() throws  LexicalError {
+
+        Token grupofirst = new Token("(");
+
+        if(preanalisis.compareTo(grupofirst) == 0) {
+            return this.grupo();
+        } else {
+            return this.leng();
+        }
+    }
+
+    /**
+     * Producción 8
+     * @return
+     * @throws LexicalError
+     */
+    private Thompson grupo() throws LexicalError {
+        try {
+            this.matching("(");
+        } catch (LexicalError ex) {
+            this.error = true;
+            throw new LexicalError("se esperaba el símbolo -> '('");
+        }
+        
+        Thompson Aux1 = this.simboloInicial();
+        
+        try {
+            this.matching(")");
+        } catch (LexicalError ex) {
+            this.error = true;
+            throw new LexicalError("se esperaba el simbolo -> ')'");
+        }
+        
+        return Aux1;
+    }
+    
+    /**
+     * Producción 9
+     * @return
+     * @throws LexicalError
+     */
+    private Thompson leng() throws LexicalError {
+        Thompson nuevo = null;
+        try {
+            if (preanalisis.getTipo() != TipoToken.FIN) {
+                nuevo = new Thompson(preanalisis.getValor(),TipoAutomata.AFN.ordinal());
+                this.matching(preanalisis.getValor());
+            }
+        } catch (LexicalError ex) {
+            this.error = true;
+            throw new LexicalError("Error Léxico en [" + this.getPosicion() + "]: el símbolo no pertenece al alfabeto");
+        } catch (Exception ex) {
+            this.error = true;
+            throw new LexicalError("Error Léxico en [" + this.getPosicion() + "]: "+ex.getMessage());
+        }
+
+        return nuevo;
+    }
+
+   /**
+     * Llamada al analizador léxico para obtener el sgte caracter de la cadena de entrada.
+     * Si el analizador léxico encuentra un error (como que el caracter no
+     * pertenece al alfabeto) se atrapa la excepción, se informa en la salida y
+     * se aborta el análisis. <br><br>
+     * @return Token que contiene el símbolo siguiente a procesar
+     * @exception LexicalError
+     */
+    private Token nextSymbol() throws LexicalError {
+        Token result = null;
+        result = this.lexico.next();
+        return result;
+    }
+   
+    /**
+     * Implementación del procedimiento que se encarga de parear el símbolo de
+     * preanálisis actual con la entrada esperada según la sintaxis del lenguaje
+     *
+     * @param simbolo Símbolo esperado
+     * @throws LexicalError
+     */
+    private void matching(String simbolo) throws LexicalError {
+
+        Token tok = new Token(simbolo); // se crea un Token temporal para
+                                        // compararlo con preanalisis
+
+        if ( getPreanalisis().compareTo(tok) == 0 ) {
+            this.setPreanalisis(this.nextSymbol());
+            this.Special = tok.getValor();
+            this.incPosicion();
+        } else {
+            throw new LexicalError(tok.getValor());
+        }
+    }    
+
+}
+package py.com.fpuna.compiladores.analizadorlexico;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import py.com.fpuna.compiladores.analizadorlexico.automata.Arco;
+import py.com.fpuna.compiladores.analizadorlexico.automata.Estado;
+import py.com.fpuna.compiladores.analizadorlexico.automata.ListaArcos;
+import py.com.fpuna.compiladores.analizadorlexico.automata.ListaEstados;
+
+/**
+ *
+ * @author markos
+ */
+public class Automata {
+    public enum TipoAutomata {
+        AFN,
+        AFD,
+        AFDMin
+    }
+    public static final String EMPTY = " [ empty ] ";
+    public int tipoAutomata;
+    private ListaEstados listaEstados;
+    private ListaEstados listaEstadosFinales;
+    private Estado estadoInicial;    
+    private String regex;
+    private ArrayList<String> alphabet;
+
+    public Automata() {
+        listaEstados = new ListaEstados();
+        listaEstadosFinales = new ListaEstados();
+    }
+
+    public Automata(String simbolo) {
+        listaEstados = new ListaEstados();
+
+        Estado origen = new Estado(0, true, false, false);
+        Estado destino = new Estado(1, false, true, false);
+        Arco enlace = new Arco(origen, destino, simbolo);
+        origen.addEnlace(enlace);
+        estadoInicial = origen;
+
+        listaEstados.insertar(origen);
+        listaEstados.insertar(destino);
+
+        listaEstadosFinales = new ListaEstados();
+        listaEstadosFinales.add(destino);
+    }
+
+    public Automata(String simbolo, int tipo) {
+        this(simbolo);
+        this.tipoAutomata = tipo;
+    }
+    
+    public void eliminarIslas() {
+        for (Estado e : this.getEstados()) {
+            if (e.esIsla()) {
+                eliminarEstado(e);
+            }
+        }
+    }
+
+    public Estado getEstadoInicial() {
+        return estadoInicial;
+    }
+
+    public void setEstadoInicial(Estado estadoInicial) {
+        this.estadoInicial = estadoInicial;
+    }
+
+    public Automata(ListaEstados listaEstados, ListaEstados listaEstadosFinales, Estado estadoInicial) {
+        this.listaEstados = listaEstados;
+        this.listaEstadosFinales = listaEstadosFinales;
+        this.estadoInicial = estadoInicial;
+    }
+
+    public ListaEstados getListaEstados() {
+        return listaEstados;
+    }
+
+    public void setListaEstados(ListaEstados listaEstados) {
+        this.listaEstados = listaEstados;
+    }
+
+    public ListaEstados getListaEstadosFinales() {
+        return listaEstadosFinales;
+    }
+
+    public void setListaEstadosFinales(ListaEstados listaEstadosFinales) {
+        this.listaEstadosFinales = listaEstadosFinales;
+    }
+    
+    public Estado getEstado(int index) {
+        return this.listaEstados.getEstado(index);
+    }
+
+    public ListaEstados getEstados() {
+        return this.listaEstados;
+    }
+
+    public Estado getEstadoById(int id) {
+        return this.listaEstados.getEstadoById(id);
+    }
+
+    public ListaEstados getFinales() {
+        return listaEstadosFinales;
+    }
+
+    public ListaEstados getNoFinales() {
+        ListaEstados lista = new ListaEstados();
+        for (Estado x : listaEstados) {
+            if (!x.isEstadofinal()) {
+                lista.insertar(x);
+            }
+        }
+        return lista;
+    }
+
+    public Estado getInicial() {
+        return estadoInicial;
+    }
+
+    public void setInicial(Estado ini) {
+        this.estadoInicial = ini;
+    }
+
+    public ArrayList<String> getAlpha() {
+        return this.alphabet;
+    }
+
+    public String getRegex() {
+        return this.regex;
+    }
+
+    public void setAlpha(ArrayList<String> alpha) {
+        this.alphabet = alpha;
+    }
+
+    public void setRegex(String regex) {
+        this.regex = regex;
+    }
+
+    public void renumerar(int incremento) {
+       //Renumerar Estados
+        Iterator it = this.listaEstados.getIterator();
+        while (it.hasNext()) {
+            Estado e = (Estado) it.next();
+            e.setId(e.getId() + incremento);
+        }
+
+    }
+
+    public String imprimir() {
+
+        String result = "";
+        Iterator it = this.listaEstados.getIterator();
+        while (it.hasNext()) {
+            Estado e = (Estado) it.next();
+            result += "\nE." + e.getId();
+
+            if (e.isEstadoinicial()) {
+                result += "(ini)";
+            }
+            if (e.isEstadofinal()) {
+                result += "(fin)";
+            }
+            result += "\n";
+
+            Iterator itenlaces = e.getEnlaces().getIterator();
+            while (itenlaces.hasNext()) {
+                Arco enlace = (Arco) itenlaces.next();
+                result += "\t"
+                        + enlace.getOrigen().getId() + " ---" + enlace.getEtiqueta() + "---> " + enlace.getDestino().getId() + "\n";
+            }
+        }
+        return result;
+    }
+
+    public ListaArcos getEnlaces() {
+        ListaArcos ret = new ListaArcos();
+
+        for (Estado est : getEstados()) {
+            for (Arco enlace : est.getEnlaces()) {
+                ret.add(enlace);
+            }
+        }
+
+        return ret;
+    }
+
+    public void addEstado(Estado e) {
+        this.listaEstados.insertar(e);
+    }
+
+    private void eliminarEstado(Estado e) {
+        for (Estado est : this.listaEstados) {
+            for (Arco enlace : est.getEnlaces()) {
+                if (e.getId() != est.getId() && enlace.getDestino().getId()
+                        == e.getId()) {
+                    est.eliminarEnlace(enlace);
+                }
+            }
+        }
+    }
+
+
+}
+package py.com.fpuna.compiladores.analizadorlexico;
+
+import py.com.fpuna.compiladores.exceptions.LexicalError;
+
+/**
+ *
+ * @author markos
+ */
+public class Lexico {
+    // expresion a analizar
+    private StringBuffer regex;
+    // conjunto de simbolos posibles
+    private Alfabeto alphabet;
+    // forma parte de la tabla de simbolos
+    private String specials;
+
+    public Lexico(String regex, String alfabeto) {
+        this.regex = new StringBuffer(regex);
+        this.alphabet = new Alfabeto(alfabeto);
+        this.specials = "*+?|()";
+    }
+    public Lexico(String regex, Alfabeto alfabeto) {
+        this.regex = new StringBuffer(regex);
+        this.alphabet = alfabeto;
+        this.specials = "*+?|()";
+    }
+
+    /**
+     * Consume la entrada y devuelve el siguiente a procesar. Si no se trata de
+     * un token que pertenezca al alfabeto, entonces se lanza una Excepción.
+     * <br><br>
+     *
+     * @return El siguiente caracter de la expresión regular
+     * @throws java.lang.Exception Se lanza una excepción si el siguiente símbolo
+     *                             no pertenece al alfabeto o a alguno de los
+     *                             símbolos conocidos
+     */
+    public Token next() throws LexicalError {
+        String s = consume();
+        Token siguiente;
+
+        if (s.equalsIgnoreCase(" ") || s.equalsIgnoreCase("\t")) {
+            // Los espacios y tabuladores se ignoran
+            siguiente = next();         
+
+        } else if (this.specials.indexOf(s) >= 0 || this.alphabet.contiene(s) ||
+                s.length() == 0) {
+            siguiente = new Token(s);   
+
+        } else {
+            String except = "Simbolo no valido [ " + s + " ]";
+            throw new LexicalError(except);
+        }
+
+        return siguiente;
+    }
+
+    /**
+     * Extrae la primera letra de la regex y la devuelve como un String.
+     *
+     * @return El siguiente caracter en la regex
+     */
+    private String consume() {
+
+        String consumido = "";
+        if (this.regex.length() > 0) {
+            consumido = Character.toString(this.regex.charAt(0));
+            this.regex.deleteCharAt(0);
+        }
+
+        return consumido;
+    }
+
+    /**
+     * 
+     * @return alfabeto analizado
+     */
+    public Alfabeto getAlfabeto() {
+        return alphabet;
+    }
+
+    /**
+     * @return regex analizada
+     */
+    public StringBuffer getRegex() {
+        return regex;
+    }
+
+    /**
+     * @return regex analizada, como un String
+     */
+    public String getRegexString() {
+        return regex.toString();
+    }
+
+    /**
+     * @return specials os operadores y simbolos especiales del lenguaje
+     */
+    public String getSpecials() {
+        return specials;
+    }
+}
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package py.com.fpuna.compiladores.analizadorlexico;
+
+import py.com.fpuna.compiladores.analizadorlexico.algoritmos.Minimizacion;
+import py.com.fpuna.compiladores.analizadorlexico.algoritmos.Subconjunto;
+import py.com.fpuna.compiladores.analizadorlexico.algoritmos.Thompson;
+
+/**
+ *
+ * @author markos
+ */
+public class Main {
+/**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) throws Exception{
+        String regex = "(a|b)*";
+        String alpha = "ab";
+
+        System.out.println("Testing: Analizador.java (testAfGen)");
+        System.out.println("--> Generacion de un AFN simple con:\n-->   regex (sin espacios)= " + regex + "\n-->   alfabeto="+alpha);
+
+        Analizador t = new Analizador(regex, alpha);
+        Thompson A = t.traducir();
+        A.setAlpha(t.getAlfabeto());
+        A.setRegex(t.getRegex());
+
+        String salida_simple = A.imprimir();
+        System.out.println(salida_simple);
+
+        //Alg de Subconjuntos
+        Subconjunto algSub = new Subconjunto(A);
+        Thompson AFD = algSub.ejecutar().convertAutomata();
+        System.out.println("\nAFD\n____\n");
+        System.out.println(AFD.imprimir());
+
+        //Eliminar estados inalacanzables
+        AFD = Subconjunto.eliminar_estados_inalcanzables(AFD);
+        System.out.println("\nAFD sin estados inalcanzables\n___________\n");
+        System.out.println(AFD.imprimir());
+
+        //Alg de Minimizacion
+        Minimizacion algMin = new Minimizacion(AFD);
+        Automata AFDM = algMin.minimizar();
+        System.out.println("\nAFDM\n_____\n");
+        System.out.println(AFDM.imprimir());
+
+        //Eliminar estados muertos
+        AFDM.eliminarIslas();
+        System.out.println("\nAFDM sin islas\n________________\n");
+        System.out.println(AFDM.imprimir());
+
+    }
+
+}
+package py.com.fpuna.compiladores.analizadorlexico;
+
+/**
+ * Clase que encapsula a cada componente enviado desde el analizador léxico 
+ * al analizador sintáctico para su procesamiento. <br> <br>
+ *
+ */
+public class Token implements Comparable<Token> {
+
+    public enum TipoToken {
+        NONE, // token erróneo
+        KLEENE, // '*' --> cerradura de kleene
+        PLUS, // '+' --> cerradura positiva de kleene
+        CEROUNO, // '?' --> Cero o una instancia
+        OR, // '|' --> Disyunción
+        PARI, // '(' --> Paréntesis izquierdo
+        PARD, // ')' --> Paréntesis derecho
+        ALFA, // Cualquier letra del alfabeto
+        FIN         // Fin de la expresión regular
+    }
+    private TipoToken tipo;
+    private String valor;
+
+    /**
+     * Constructor principal del Token a partir del símbolo que se le pasa. Se
+     * asume que el símbolo es válido ya que se deja la validcación al analizador
+     * léxico. 
+     * @param tipo Indica el tipo de token definidas por el enum TipoToken. 
+     */
+    public Token(String simbolo) {
+        this.valor = simbolo;
+        this.setTipo(simbolo);
+    }
+
+    /**
+     * Función que retorna el tipo de token actual
+     * @return Retorna el tipo de token
+     */
+    public TipoToken getTipo() {
+        return tipo;
+    }
+
+    /**
+     * Método que retorna el valor (char) del token actual. 
+     * @return
+     */
+    public String getValor() {
+        return valor;
+    }
+
+    /**
+     * Establece el tipo de token
+     * @param tipo Tipo del token actual
+     */
+    public void setTipo(TipoToken tipo) {
+        this.tipo = tipo;
+    }
+
+    /**
+     * Valor (en char) del tipo de token actual
+     * @param valor Caracter que representa el tipo de token
+     */
+    public void setValor(String valor) {
+        this.valor = valor;
+        this.setTipo(valor);
+    }
+
+    /**
+     * Método abstracto de la clase Comparable implementado por Token para poder
+     * utilizar el operador == para las comparaciones <br><br>
+     * 
+     * @param t Token con el que se comparará el actual. 
+     * @return <ul> <li><b>0 (Cero)</b> si son  iguales         </li>
+     *              <li><b>-1 (Menos Uno)</b> si no son iguales </li>
+     *         </ul>
+     */
+    public int compareTo(Token t) {
+        if (this.getTipo() == t.getTipo()
+                && this.getValor().compareTo(t.getValor()) == 0) {
+            return 0;
+        } else {
+            return -1;
+        }
+    }
+
+    private void setTipo(String simbolo) {
+
+        if (simbolo.isEmpty()) {
+            this.tipo = TipoToken.FIN;
+        } else {
+
+            switch (simbolo.charAt(0)) {
+                case '*':
+                    this.tipo = TipoToken.KLEENE;
+                    break;
+                case '+':
+                    this.tipo = TipoToken.PLUS;
+                    break;
+                case '?':
+                    this.tipo = TipoToken.CEROUNO;
+                    break;
+                case '|':
+                    this.tipo = TipoToken.OR;
+                    break;
+                case '(':
+                    this.tipo = TipoToken.PARI;
+                    break;
+                case ')':
+                    this.tipo = TipoToken.PARD;
+                    break;
+                default:
+                    this.tipo = TipoToken.ALFA;
+                    this.valor = simbolo;
+                    break;
+            }
+        }
+    }
+}
+package py.com.fpuna.compiladores.analizadorlexico.algoritmos;
+
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.Iterator;
+import py.com.fpuna.compiladores.analizadorlexico.Automata;
+import py.com.fpuna.compiladores.analizadorlexico.automata.Arco;
+import py.com.fpuna.compiladores.analizadorlexico.automata.Estado;
+import py.com.fpuna.compiladores.analizadorlexico.automata.ListaEstados;
+import py.com.fpuna.compiladores.exceptions.AutomataException;
+
+/**
+ * Implementación del algoritmo de minimización de un AFD definido en la sección 3.9.6 del libro.
+ */
+public class Minimizacion {
+
+    Automata AFD;
+
+    public Minimizacion(Automata a) {
+        this.AFD = a;
+    }
+
+
+/** ALGORITMO DE MINIMIZACION
+ * Los siguientes metodos son usados en el algoritmo de minimizacion.
+ *
+ **/
+
+
+   /***
+    * Este método realiza el algoritmo de minimización definido en el
+    * libro en la sección 3.9.6.
+    * Retorna un nuevo Automata que acepta el mismo lenguaje (del automata
+    * pasado en el constructor.)y tiene el menor número de estados posible.
+    * Pasos:
+    *   1) Se empieza con una particion inicial P = {NO_FINALES, FINALES}
+    *   2) Pnew = Por c/ grupo G en P particionarG en subgrupos de forma que s y t
+    *       se encuentren en el mismo subgrupo, si y solo si para todo el
+    *       alfabeto s y t tienen transiciones hacia los mismos grupos de P.
+    *   3) Si Pnew = P, entonces Pfinal = Pnew, e ir al paso 4. Sino, ir al paso 2
+    *   4) Elegir un estado de c/ grupo como representante y actualizar
+    *      los enlaces
+    *
+    * @return Automata (Un nuevo automata minimizado)
+    * @throws exceptions.AutomataException
+    */
+   public Thompson minimizar() throws AutomataException{
+       ArrayList<ListaEstados> anterior = new ArrayList<ListaEstados>();
+       ArrayList<ListaEstados> actual = new ArrayList<ListaEstados>();
+
+       int nro_est = 0;
+       ListaEstados nofinales = AFD.getNoFinales();
+       ListaEstados finales = AFD.getFinales();
+
+       if(nofinales != null && nofinales.cantidad() > 0){
+            nofinales.setId(nro_est++);
+            anterior.add(nofinales);
+       }
+
+       if(finales != null && finales.cantidad() > 0){
+            finales.setId(nro_est++);
+            anterior.add(finales);
+       }
+
+       boolean seguir = true;
+       while(seguir){
+
+           int cant =0;
+           for(ListaEstados cadaLista: anterior){
+                Iterator it = separarGrupos(anterior, cadaLista);
+                while(it != null && it.hasNext()){
+                    ListaEstados list= (ListaEstados)it.next();
+                    list.setId(cant++);
+                    actual.add(list);
+                }
+           }
+
+           if(anterior.size() == actual.size()){
+               seguir = false;
+           }else{
+               anterior = actual;
+               actual = new ArrayList<ListaEstados>();
+           }
+       }
+       //Fin del Algoritmo de Minimizacion.
+
+
+       //Ahora se convierte "actual"  en "Automata"
+       //Primero creamos los estados
+       Thompson AFDM = new Thompson();
+       Iterator it = actual.iterator();
+       while(it.hasNext()){
+            ListaEstados lest = (ListaEstados) it.next();
+            Estado nuevo = new Estado(lest.getId() , false, false,false);
+
+            //Es estado inicial
+            try{
+                lest.getEstadoInicial();
+                nuevo.setEstadoinicial(true);
+                AFDM.setInicial(nuevo);
+            }catch(Exception ex){
+                nuevo.setEstadoinicial(false);
+            }
+
+            //Es estado final
+            if(lest.getEstadosFinales().cantidad() > 0){
+                nuevo.setEstadofinal(true);
+                AFDM.getFinales().insertar(nuevo);
+            }else{
+                nuevo.setEstadofinal(false);
+            }
+            AFDM.addEstado(nuevo);
+       }
+
+       //Segundo, creamos los enlaces
+       it = actual.iterator();
+       while(it.hasNext()){
+            ListaEstados lest = (ListaEstados) it.next();
+            Estado estado_afdm  = AFDM.getEstadoById(lest.getId());
+            Estado representante = lest.get(0);
+
+            Iterator itenlaces = representante.getEnlaces().getIterator();
+            while (itenlaces.hasNext()){
+                Arco e = (Arco) itenlaces.next();
+                ListaEstados lista_destino = enqueLista(actual, e.getDestino());
+                Estado est_destino = AFDM.getEstadoById(lista_destino.getId());
+                Arco nuevo_enlace = new Arco(estado_afdm, est_destino, e.getEtiqueta());
+                estado_afdm.addEnlace(nuevo_enlace);
+            }
+       }
+
+       return AFDM;
+   }
+
+
+   /***
+    *   Método para separar una "lista" en varios grupos.
+    * Para cada estado de la lista, se itera sobre todos sus enlaces y a partir
+    * de eso se obtiene información para crear un nuevo subgrupo o agragar a
+    * uno existente.
+    *
+    * @param ListasActuales (Todas las listas actuales)
+    * @param laLista (la lista que será separa en grupos)
+    * @return Iterador de las sublistas en que se dividió laLista
+    */
+   public Iterator separarGrupos(ArrayList<ListaEstados> todas,
+                                ListaEstados lista){
+        Hashtable listasNuevas = new Hashtable();
+        for(Estado estado : lista){
+            String claveSimbolos = "";
+            String claveEstados = "";
+
+            for(Arco enlace : estado.getEnlaces()){
+                Estado dest = enlace.getDestino();
+                ListaEstados tmp = enqueLista(todas, dest);
+                claveSimbolos += enlace.getEtiqueta().trim();
+                claveEstados += tmp.getId();
+
+            }
+            String clave = generarClaveHash(claveSimbolos, claveEstados);
+            if(listasNuevas.containsKey(clave)){
+                ((ListaEstados)listasNuevas.get(clave)).insertar(estado);
+            }else{
+                ListaEstados nueva = new ListaEstados();
+                nueva.insertar(estado);
+                listasNuevas.put(clave, nueva);
+            }
+        }
+        return listasNuevas.values().iterator();
+   }
+
+
+
+
+   /**
+    * Método mágico que genera una clave que sera la clave de un hash
+    * que tendrá las sublistas que pertenecen a un mismo grupo.
+    * Todas las listas que  generen el mismo hash tendrán la misma clave y por
+    * ende estarán en la misma lista dentro del hash.
+    *
+    * @param simbolos
+    * @param estados
+    * @return
+    */
+   public String generarClaveHash(String simbolos, String estados ){
+       String cadenaFinal = "";
+
+        char est[] = estados.toCharArray();
+        char c[] = simbolos.toCharArray();
+        boolean hayCambios = true;
+        for (int i = 0; hayCambios ; i++) {
+            hayCambios = false;
+            for (int j = 0; j < c.length - 1; j++) {
+              if (c[j] > c[j + 1]) {
+
+                  //intercambiar(arreglo, j, j+1);
+                  //ini intercambiar
+                  char tmp = c[j+1];
+                  c[j+1] = c[j];
+                  c[j] = tmp;
+
+                  char tmpEst = est[j+1];
+                  est[j+1] = est[j];
+                  est[j] = tmpEst;
+                  //fin intercambiar
+
+                  hayCambios = true;
+              }
+            }
+        }
+       cadenaFinal = String.copyValueOf(c) + String.copyValueOf(est);
+       return cadenaFinal;
+   }
+
+
+
+   /***
+    * Método que retorna una lista de estado de entre las "listas", en la que
+    * se encuentra un "estado" en particular.
+    *
+    * @param listas
+    * @param estado
+    * @return
+    */
+   public ListaEstados enqueLista(ArrayList<ListaEstados> listas, Estado estado){
+        for(ListaEstados lista : listas){
+            try{
+                lista.getEstadoById(estado.getId());
+                return lista;
+            }catch(Exception ex){}
+        }
+        return null;
+   }
+
+
+
+
+
+}
+package py.com.fpuna.compiladores.analizadorlexico.algoritmos;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import py.com.fpuna.compiladores.analizadorlexico.Automata;
+import py.com.fpuna.compiladores.analizadorlexico.Token;
+import py.com.fpuna.compiladores.analizadorlexico.automata.Arco;
+import py.com.fpuna.compiladores.analizadorlexico.automata.Estado;
+import py.com.fpuna.compiladores.analizadorlexico.automata.ListaEstados;
+import py.com.fpuna.compiladores.exceptions.AutomataException;
+
+/**
+ *
+ * @author markos
+ */
+public class Subconjunto {
+
+    private Thompson automataSubconj;
+    private TransitionMatrix afdMatrix;
+    private ArrayList<ListaEstados> listaEstados;
+
+    public Subconjunto(Thompson a) {
+        automataSubconj = a; //donde a sería el AFN
+        afdMatrix = new TransitionMatrix();
+        listaEstados = new ArrayList();  //la lista de estadosD (estados en el AFD)
+    }
+
+    //construcción de subconjuntos (Fig 3.25)
+    public TransitionMatrix ejecutar() throws AutomataException {
+        Iterator it;
+        Token simbolo;
+        ListaEstados lista_1; 
+        int i = 0; //para el id de la lista listaEstados
+
+        Estado est_inicial = automataSubconj.getEstados().getEstadoInicial(); //obtiene el estado inicial de la entrada que fue el AFN
+        ListaEstados lista_2 = cerradura_empty(est_inicial, new ListaEstados());
+        lista_2.setId(0);
+        listaEstados.add(lista_2); //al inicio, lo q está en lista_2 es el único estado dentro de listaEstados y no está marcado
+        ListaEstados lista_3 = estadoSinMarcar();
+
+        while (lista_3!=null) { //mientras haya un estado no marcado lista_3 en listaEstados
+            TransitionMatrixKey clave;
+            System.out.println(lista_3);
+            lista_3.setMarcado(true); //marcar T
+
+            it = automataSubconj.getAlpha().iterator();
+            while (it.hasNext()) { //itera sobre el alfabeto de símbolos de entrada
+                simbolo = new Token((String) it.next());
+                lista_1 = cerradura_empty(mueve(lista_3, simbolo));
+                if (lista_1 == null) {
+                    continue;
+                }
+                int id_U = estaEnEstadosD(lista_1);
+                if (id_U == -1) { //si lista_1 no está en listaEstados (estadosD en el pseudocódigo)
+                    lista_1.setMarcado(false); //añadir lista_1 como estado no-marcado a listaEstados
+                    lista_1.setId(listaEstados.size());
+                    listaEstados.add(lista_1);
+                } else {
+                    lista_1.setId(id_U); 
+                }
+                clave = new TransitionMatrixKey(lista_3, simbolo);
+                afdMatrix.setValor(clave, lista_1);
+            }
+            lista_3 = estadoSinMarcar();
+            //System.out.println("iteracion " + i++);
+        }
+        //System.out.println("aca no llega");
+        return this.afdMatrix;
+    }
+
+    /**
+     * Cálculo de cerradura-e (Fig 2.6)
+     * @param s Estado que se agrega y recorre por sus vacios.
+     * @param listaCurr lista de estados donde se van agregando. Al inicio está vacia
+     * @return La lista de estados por los que se recorre mediante vacio desde el estado "s"
+     */
+    public ListaEstados cerradura_empty(Estado s, ListaEstados listaCurr) {
+        Iterator it = s.getEnlaces().getIterator(); //todos los enlaces del estado s
+        ListaEstados listaNew = null;
+        while (it.hasNext()) { //mientras haya arco
+            Arco e = (Arco) it.next(); //sería lo correspondiente a sacar un elemento de la pila
+            if (e.getEtiqueta().compareTo(Automata.EMPTY) == 0) { //si la etiqueta del enlace es EMPTY
+                listaNew = cerradura_empty(e.getDestino(), listaCurr);
+                listaCurr = unirListas(listaCurr, listaNew);
+
+            }
+        }
+        listaCurr.insertar(s); //lo correspondiente a meter el estado u en la pila
+        return listaCurr;
+    }
+
+    /***
+     * Por cada estado de la lista recibida se recorre recursivamente por los
+     * enlaces "vacio" y se genera una nueva lista.
+     * @param T
+     * @return
+     */
+    public ListaEstados cerradura_empty(ListaEstados T) {
+        if (T == null) {
+            return null;
+        }
+
+        ListaEstados lista_ret = new ListaEstados();
+        Iterator it = T.getIterator();
+        Estado act;
+
+        while (it.hasNext()) {
+            act = (Estado) it.next();
+            lista_ret = unirListas(lista_ret, cerradura_empty(act, new ListaEstados()));
+        }
+
+        return lista_ret;
+    }
+
+    /***
+     * Realiza el algoritmo mover que se propone en el capítulo 3.
+     * Dado una lista de estados "T" y un símbolo "a" del alfabeto, mover
+     * retorna una lista con los estados en donde existe una transición por "a"
+     * desde alguno de los estados que hay en "T".
+     *
+     * @param T Lista de Estados.
+     * @param a Símbolo del alfabeto.
+     * @return Lista de Estados alos que se puede ir por a desde c/ estado en T
+     */
+    public ListaEstados mueve(ListaEstados T, Token a) {
+        Iterator itEstados = null;
+        Iterator itEnlaces = null;
+        Estado estado = null;
+        Arco enlace = null;
+        ListaEstados lista = new ListaEstados();
+
+        itEstados = T.getIterator();
+        while (itEstados.hasNext()) {
+            estado = (Estado) itEstados.next();
+            itEnlaces = estado.getEnlaces().getIterator();
+
+            while (itEnlaces.hasNext()) {
+                enlace = (Arco) itEnlaces.next();
+                if (enlace.getEtiqueta().compareTo(a.getValor()) == 0) {
+                    lista.insertar(enlace.getDestino());
+                }
+            }
+        }
+        if (lista.size() == 0) {
+            return null;
+        } else {
+            return lista;
+        }
+    }
+
+    public static ListaEstados unirListas(ListaEstados A, ListaEstados B) {
+        ListaEstados new_list = new ListaEstados();
+        Iterator it;
+        Estado est_tmp;
+
+        if (A != null) {
+            it = A.getIterator();
+            while (it.hasNext()) {
+                est_tmp = (Estado) it.next();
+                try {
+                    new_list.getEstadoById(est_tmp.getId());
+                } catch (Exception ex) {
+                    new_list.insertar(est_tmp);
+                }
+            }
+        }
+
+        if (B != null) {
+            it = B.getIterator();
+            while (it.hasNext()) {
+                est_tmp = (Estado) it.next();
+                try {
+                    new_list.getEstadoById(est_tmp.getId());
+                } catch (Exception ex) {
+                    new_list.insertar(est_tmp);
+                }
+            }
+        }
+
+        return new_list;
+    }
+
+    /**
+     * Eliminación de los estados inalcanzables.
+     * Método estatico que recibe un AFD y retorna un nuevo AFD sin los estados
+     * inalcanzables. Necesita del metodo estatico "recorrer"
+     *
+     * @param AFD
+     * @return AFD sin estados inalcanzables
+     */
+    public static Thompson eliminar_estados_inalcanzables(Thompson AFD) {
+        Estado inicial = AFD.getInicial();
+        AFD.getEstados().resetVisitas();
+        visitarRecursivo(inicial);
+
+        Thompson AFDNEW = new Thompson();
+        AFDNEW.setAlpha(AFD.getAlpha());
+        AFDNEW.setRegex(AFD.getRegex());
+
+        Iterator it = AFD.getEstados().getIterator();
+        while (it.hasNext()) {
+            Estado e = (Estado) it.next();
+            if (e.isVisitado()) {
+
+                if (e.isEstadoinicial()) {
+                    AFDNEW.setInicial(e);
+                }
+                if (e.isEstadofinal()) {
+                    AFDNEW.getFinales().insertar(e);
+                }
+                AFDNEW.addEstado(e);
+            }
+
+        }
+
+        return AFDNEW;
+    }
+
+    /**
+     * Método que marca como visitado un nodo con sus respectivos
+     * hijos, lo hace recursivamente.
+     *
+     * @param Estado actual a marcar como visitado
+     */
+    public static void visitarRecursivo(Estado actual) {
+        if (!actual.isVisitado()) {
+            actual.setVisitado(true);
+            Iterator it = actual.getEnlaces().iterator();
+            while (it.hasNext()) {
+                Arco enlace = (Arco) it.next();
+                visitarRecursivo(enlace.getDestino());
+            }
+        }
+    }
+    
+    /**
+     * Retorna el primer estado sin marcar que encuentra en listaEstados.
+     * Si no existe ninguno sin marcar, lanza una excepción.
+     *
+     * @return
+     * @throws exceptions.AutomataException
+     */
+    private ListaEstados estadoSinMarcar() throws AutomataException {
+        Iterator it = listaEstados.iterator();
+        ListaEstados list_est;
+        while (it.hasNext()) {
+            list_est = (ListaEstados) it.next();
+            if (!list_est.isMarcado()) {
+                return list_est;
+            }
+        }
+       // throw new AutomataException("No hay lista de estados sin marcar en listaEstados.");
+        return null;
+    }
+
+    /***
+     * Metodo que retorna el id de la lista de estados U dentro de
+     * listaEstados, si es que U no esta en la lista de estados retorna -1.
+     *
+     * @param U Lista de estados
+     * @return El id de la lista U dentro de Destados
+     */
+    private int estaEnEstadosD(ListaEstados U) {
+        Iterator it = listaEstados.iterator();
+        ListaEstados tmp;
+        while (it.hasNext()) {
+            tmp = (ListaEstados) it.next();
+            if (tmp.compareTo(U) == 0) {
+                return tmp.getId();
+            }
+        }
+        return -1;
+    }
+}
+package py.com.fpuna.compiladores.analizadorlexico.algoritmos;
+
+import java.util.Iterator;
+import py.com.fpuna.compiladores.analizadorlexico.Automata;
+import py.com.fpuna.compiladores.analizadorlexico.automata.Arco;
+import py.com.fpuna.compiladores.analizadorlexico.automata.Estado;
+
+/**
+ *
+ * @author markos
+ */
+public class Thompson extends Automata {
+
+    public Thompson(String preanalisis, int tipo) {
+        super(preanalisis, tipo);
+    }
+
+    public Thompson() {
+        super();
+    }
+
+    public void OR(Thompson param) {
+        // Obtenemos las referencias a los finales e iniciales correspondientes
+        Estado tFinal = this.getFinales().getEstado(0);
+        Estado paramFinal = param.getFinales().getEstado(0);
+        Estado tInicial = this.getInicial();
+        Estado paramInicial = param.getInicial();
+
+        tFinal.setEstadofinal(false);
+        paramFinal.setEstadofinal(false);
+
+        // Se crean 2 nuevos estados
+        Estado initialState = new Estado(0, true, false, false);
+        Estado finalState = new Estado(this.getEstados().size() + param.getEstados().size() + 1,
+                false, true, false);
+
+        // Actualizar estados iniciales de A1 y A2
+        getEstadoInicial().setEstadoinicial(false);
+        param.getEstadoInicial().setEstadoinicial(false);
+
+        // Se incrementan los numeros de ambos automatas
+        renumerar(1);
+        param.renumerar(this.getListaEstados().size() + 1);
+
+        // Se crean los enlaces vacios desde el nuevo estado inicial
+
+        // 1. Nuevo Inicio --> Inicio del Automata Actual
+        initialState.addEnlace(new Arco(initialState,
+                tInicial,
+                EMPTY));
+
+        // 2. Nuevo Inicio --> Inicio del Automata Alternativo
+        initialState.addEnlace(new Arco(initialState,
+                paramInicial,
+                EMPTY));
+
+        // Se crean los enlaces desde los finales del Actual (A1) y el
+        // alternativo (A2) hacia el Nuevo Estado Final.
+
+        // 3. Fin del Actual (A1) --> Nuevo Estado Final
+        tFinal.addEnlace(new Arco(tFinal, finalState, EMPTY));
+
+        // 4. Fin del Alternativo (A2) --> Nuevo Estado Final
+        paramFinal.addEnlace(new Arco(paramFinal, finalState, EMPTY));
+
+        // Agregamos a A1 todos los estados de A2
+        Iterator it = param.getEstados().getIterator();
+        while (it.hasNext()) {
+            this.getEstados().insertar((Estado) it.next());
+        }
+
+        // Agregamos a A1 los nuevos estados creados.
+        this.getEstados().insertar(initialState);
+        this.getEstados().insertar(finalState);
+
+        // Actualizar referencias auxiliares al inicial y al final del actual
+        setEstadoInicial(initialState);
+        this.getFinales().set(0, finalState);
+    }
+
+    public void Concat(Thompson param) {
+        Estado finalState = getFinales().getEstado(0);
+        Estado initialParam = param.getInicial();
+        Iterator<Arco> enlacesParam = initialParam.getEnlaces().getIterator();
+
+        initialParam.setEstadoinicial(false);
+        finalState.setEstadofinal(false);
+
+        int estadosFinales = getEstados().size() - 1;
+        param.renumerar(estadosFinales);
+
+        while (enlacesParam.hasNext()) {
+            Arco current = enlacesParam.next();
+            current.setOrigen(finalState);
+            finalState.addEnlace(current);
+        }
+
+        Iterator<Estado> estadosParam = param.getEstados().getIterator();
+
+        while (estadosParam.hasNext()) {
+            Estado estadoParam = estadosParam.next();
+            Iterator<Arco> enlaces = estadoParam.getEnlaces().getIterator();
+
+            while (enlaces.hasNext()) {
+                Arco enlaceActual = enlaces.next();
+                Estado destinoActual = enlaceActual.getDestino();
+
+                // Si el destino de este enlace
+                if (destinoActual.getId() == initialParam.getId()) {
+                    enlaceActual.setDestino(finalState);
+                }
+            }
+
+            // Agregar el estado al automata actual
+            if (estadoParam.getId() != initialParam.getId()) {
+                this.getEstados().insertar(estadoParam);
+            }
+        }
+
+        getFinales().set(0, param.getFinales().getEstado(0));
+    }
+
+    public void Common() {
+        renumerar(1);
+
+        // Se agregan 2 Estados nuevos (Un inicial y uno al final)
+        Estado estado_inicial = new Estado(0, true, false, false);
+        Estado estado_final = new Estado(getEstados().size() + 1, false, true, false);
+
+        Estado ex_estado_inicial = getInicial();
+        Estado ex_estado_final = getFinales().getEstado(0);
+
+        ex_estado_inicial.setEstadoinicial(false);
+        ex_estado_final.setEstadofinal(false);
+
+        estado_inicial.addEnlace(new Arco(estado_inicial,
+                ex_estado_inicial,
+                EMPTY));
+
+        ex_estado_final.addEnlace(new Arco(ex_estado_final,
+                estado_final,
+                EMPTY));
+
+        // Actualizar referencias auxiliares
+        setEstadoInicial(estado_inicial);
+        getListaEstadosFinales().set(0, estado_final);
+
+        getEstados().insertar(estado_inicial);
+        getEstados().insertar(estado_final);
+    }
+
+    public void NoneOrOne() {
+        Common();
+        getEstadoInicial().addEnlace(new Arco(getEstadoInicial(),
+                getListaEstadosFinales().getEstado(0),
+                EMPTY));
+    }
+
+    public void Plus() {
+        Estado inicio_original = getEstadoInicial();
+        Estado fin_original = getFinales().getEstado(0);
+        Common();
+        fin_original.addEnlace(new Arco(fin_original,
+                inicio_original,
+                EMPTY));
+    }
+
+    public void Kleene() {
+        Estado inicio_original = getEstadoInicial();
+        Estado fin_original = getListaEstadosFinales().get(0);
+        Common();
+
+        fin_original.addEnlace(new Arco(fin_original,
+                inicio_original,
+                EMPTY));
+
+        getEstadoInicial().addEnlace(new Arco(getEstadoInicial(),
+                getListaEstadosFinales().getEstado(0),
+                EMPTY));
+    }
+}
+package py.com.fpuna.compiladores.analizadorlexico.algoritmos;
+
+import java.util.HashMap;
+import py.com.fpuna.compiladores.analizadorlexico.Automata;
+import py.com.fpuna.compiladores.analizadorlexico.Token;
+import py.com.fpuna.compiladores.analizadorlexico.automata.Arco;
+import py.com.fpuna.compiladores.analizadorlexico.automata.Estado;
+import py.com.fpuna.compiladores.analizadorlexico.automata.ListaEstados;
+
+public class TransitionMatrix {
+
+    private HashMap dtrans;
+
+    /** Creates a new instance of Dtrans */
+    public TransitionMatrix() {
+        dtrans = new HashMap();
+    }
+
+    /**
+     * Retorna el valor(ListaEstados) apartir de la clave (ListaEstados, Token)
+     * 
+     * @param clave
+     * @return
+     */
+    public ListaEstados obtenerValor(TransitionMatrixKey clave) {
+        return obtenerValor(clave.getIndiceEstados(), clave.getIndiceToken());
+    }
+
+    public ListaEstados obtenerValor(ListaEstados lista, Token token) {
+        TransitionMatrixKey comparar = new TransitionMatrixKey(lista, token);
+        Iterable<TransitionMatrixKey> s = dtrans.keySet();
+        for (TransitionMatrixKey clave : s) {
+            if (clave.compareTo(comparar) == 0) {
+                return (ListaEstados) dtrans.get(clave);
+            }
+        }
+
+        return null;
+    }
+
+    public void setValor(TransitionMatrixKey clave, ListaEstados valor) {
+        dtrans.put(clave, valor);
+    }
+
+    /**
+     *  Método que convierte el Dtrans en un "Automata", ya que las listas 
+     * de estados A,B,C, etc son los estados del nuevo Automata creado.
+     * 
+     * @return Automata convertido.
+     */
+    public Thompson convertAutomata() {
+        Thompson th = new Thompson();
+
+        Iterable<TransitionMatrixKey> s = dtrans.keySet();
+        for (TransitionMatrixKey clave : s) {
+            ListaEstados valor = obtenerValor(clave);
+
+            int id_new_origen = clave.getIndiceEstados().getId();
+            int id_new_dest = valor.getId();
+            Estado st_new_origen, st_new_dest;
+
+            try {
+                st_new_origen = th.getEstadoById(id_new_origen);
+            } catch (Exception ex) {
+                //No existe el estado entonces creamos
+                st_new_origen = new Estado(id_new_origen,
+                        clave.getIndiceEstados().contieneInicial(),
+                        clave.getIndiceEstados().contieneFinal(),
+                        false);
+                th.addEstado(st_new_origen);
+                if (clave.getIndiceEstados().contieneInicial()) {
+                    th.setInicial(st_new_origen);
+                }
+                if (clave.getIndiceEstados().contieneFinal()) {
+                    th.getFinales().insertar(st_new_origen);
+                }
+
+            }
+
+
+            try {
+                st_new_dest = th.getEstadoById(id_new_dest);
+            } catch (Exception ex) {
+                //No existe el estado entonces creamos
+                st_new_dest = new Estado(id_new_dest,
+                        valor.contieneInicial(),
+                        valor.contieneFinal(),
+                        false);
+                th.addEstado(st_new_dest);
+                if (valor.contieneInicial()) {
+                    th.setInicial(st_new_dest);
+                }
+                if (valor.contieneFinal()) {
+                    th.getFinales().insertar(st_new_dest);
+                }
+            }
+
+            //Agregamos los enlaces.
+            Arco enlace_new = new Arco(st_new_origen, st_new_dest,
+                    clave.getIndiceToken().getValor());
+
+            st_new_origen.addEnlace(enlace_new);
+        }
+
+        return th;
+    }
+
+    public String imprimir() {
+        String print = "";
+        Iterable<TransitionMatrixKey> s = dtrans.keySet();
+        for (TransitionMatrixKey clave : s) {
+            ListaEstados lista = obtenerValor(clave);
+
+            print += "\n" + clave.getIndiceEstados().imprimir()
+                    + " -#- " + clave.getIndiceToken().getValor()
+                    + " = " + lista.imprimir();
+        }
+        return print;
+    }
+}
+package py.com.fpuna.compiladores.analizadorlexico.algoritmos;
+
+import py.com.fpuna.compiladores.analizadorlexico.Token;
+import py.com.fpuna.compiladores.analizadorlexico.automata.ListaEstados;
+
+
+public class TransitionMatrixKey {
+    // fila, indicadas por una lista de estados
+    private ListaEstados indiceEstados;
+    // columna, indicada por un token del lenguaje
+    private Token indiceToken;
+
+    public TransitionMatrixKey(ListaEstados list, Token tok) {
+        this.indiceEstados = list;
+        this.indiceToken = tok;
+    }
+    
+    public ListaEstados getIndiceEstados() {
+        return this.indiceEstados;
+    }
+    public void setIndiceEstados(ListaEstados indiceEstados) {
+        this.indiceEstados = indiceEstados;
+    }
+    public Token getIndiceToken() {
+        return this.indiceToken;
+    }
+    public void setIndiceToken(Token indiceToken) {
+        this.indiceToken = indiceToken;
+    }
+    public int compareTo(Object otro){
+        TransitionMatrixKey o = (TransitionMatrixKey) otro;
+        if(indiceToken.getValor().compareTo(o.getIndiceToken().getValor()) == 0) {
+            if(indiceEstados.compareTo(o.getIndiceEstados()) == 0){
+                return 0;
+            }else{
+                return -1;    
+            }
+        }else{
+            return -1;
+        }
+    }
+    
+}
+package py.com.fpuna.compiladores.analizadorlexico.automata;
+
+public class Arco implements Comparable<Arco> {
+    private Estado origen;
+    private Estado destino;
+    private String etiqueta;
+    private boolean vacio;
+          
+     /**
+      * 
+      * @param origen  Estado de origen del enlace.
+      * @param destino Estado de destino del enlace.
+      * @param label   Etiqueta del Arco
+      */
+    public Arco(Estado origen, Estado destino, String label) {
+        this.origen = origen;
+        this.destino = destino;
+        this.etiqueta = label;
+        
+        if (label.compareTo("") == 0) {
+            this.vacio = true;
+        } else {
+            this.vacio = false;
+        }
+    }
+
+    public Estado getOrigen() {
+        return origen;
+    }
+    public void setOrigen(Estado origen) {
+        this.origen = origen;
+    }
+    public Estado getDestino() {
+        return destino;
+    }
+    public void setDestino(Estado destino) {
+        this.destino = destino;
+    }
+    public String getEtiqueta() {
+        return this.etiqueta;
+    }
+    public void setEtiqueta(String label) {
+        this.etiqueta = label;
+    }
+    public void setVacio(boolean vacio) {
+        this.vacio = vacio;
+    }
+    public boolean isVacio() {
+        return vacio;
+    }
+
+    /**
+     * @param e Estado al cual queremos comparar el actual
+     * @return <ul> <li><b>0 (Cero)</b> si son  iguales</li>
+     *              <li><b>-1 (Menos Uno)</b> si son <b>distintos</b></li>
+     *         </ul>
+     */
+    public int compareTo(Arco e) {
+        if (e.getOrigen() == this.getOrigen()
+                && e.getDestino() == this.getDestino()
+                && e.getEtiqueta().equals(this.getEtiqueta())
+                ) {
+            return 0;
+        } else {
+            return -1;
+        }
+    }
+    
+    @Override
+    public String toString(){
+        return getEtiqueta();
+    }
+}
+package py.com.fpuna.compiladores.analizadorlexico.automata;
+
+import java.util.ArrayList;
+import py.com.fpuna.compiladores.analizadorlexico.Token;
+
+/**
+ *
+ * @author markos
+ */
+public class Estado implements Comparable<Estado> {
+
+    private int id;
+    private ListaArcos enlaces;
+    private boolean visitado, inicial, fin;
+
+    public Estado(int id, boolean esInicial, boolean esFinal, boolean visitado) {
+        this.id = id;
+        this.visitado = visitado;
+        this.fin = esFinal;
+        this.inicial = esInicial;
+        this.enlaces = new ListaArcos();
+    }
+
+
+    public int compareTo(Estado e) {
+        if (this.getId() == e.getId()) {
+            return 0;
+        } else if (this.getId() > e.getId()) {
+            return 1;
+        } else {
+            return -1;
+        }
+    }
+
+    @Override
+    public String toString() {
+        String result = "" + id;
+        if (this.isEstadofinal()) {
+            result = result + "(fin)";
+        }
+
+        if (this.isEstadoinicial()) {
+            result = result + "(ini)";
+        }
+        return result;
+    }
+
+    /**
+     * Obtener Id del Estado
+     * @return Id del estado
+     */
+    public int getId() {
+        return id;
+    }
+
+    public ListaArcos getEnlaces() {
+        return enlaces;
+    }
+
+    public boolean isEstadofinal() {
+        return this.fin;
+    }
+
+    public boolean isEstadoinicial() {
+        return this.inicial;
+    }
+
+    public boolean isVisitado() {
+        return visitado;
+    }
+
+    // ------------------------------ SETTERS ------------------------------ //
+    /**
+     * Establece un valor para el identificador del estado
+     * @param id Identificador del Estado
+     */
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    /**
+     * Establece si el estado es Final
+     * @param estadofinal Boolean que establece si el estado es o no Final
+     */
+    public void setEstadofinal(boolean estadofinal) {
+        this.fin = estadofinal;
+    }
+
+    /**
+     * Establece si el estado es inicial
+     * @param estadoinicial Boolean que establece si el estado es o no Inicial
+     */
+    public void setEstadoinicial(boolean estadoinicial) {
+        this.inicial = estadoinicial;
+    }
+
+    /**
+     * Establece si el estado fue o no visitado en un recorrido
+     * @param visitado Boolean que establece si el estado fue o no visitado en un recorrido
+     */
+    public void setVisitado(boolean visitado) {
+        this.visitado = visitado;
+    }
+
+    // --------------------------- OTROS MÉTODOS --------------------------- //
+    /**
+     * Agrega un nuevo enlace que sale de este estado
+     * @param e Arco a agregar
+     */
+    public void addEnlace(Arco e) {
+        // Insertar en la lista de enlaces para tener un método eficiente de
+        // recorrido en el futuro
+        enlaces.insertar(e);
+    }
+
+    /**
+     * Retorna el estado destino buscando entre todos los enlaces de este estado.
+     * @param a Token de la transicion.
+     * @return El estado destino al que va desde este estado por el token a
+     */
+    public Estado estadoDestino(Token a) {
+        return estadoDestinoString(a.getValor());
+    }
+
+    /**
+     * Retorna el estado destino buscando entre todos los enlaces de este estado.
+     * @param a String que es la etiqueta de la transicion.
+     * @return El estado destino al que va desde este estado por el token a
+     */
+    public Estado estadoDestinoString(String a) {
+        for (Arco x : enlaces) {
+            if (x.getEtiqueta().compareTo(a) == 0) {
+                return x.getDestino();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Obtiene el primer enlace asociado al simbolo especificado que está
+     * cargado en el Hash de enlaces
+     * @param simbolo
+     * @return
+     */
+    public Estado getDestinoFromHash(String simbolo) {
+        Arco link = this.getEnlaceSimboloFromHash(simbolo);
+        Estado result = null;
+
+        if (link != null) {
+            result = link.getDestino();
+        }
+        return result;
+    }
+
+    /**
+     * Devuelve el enlace relacionado con el símbolo
+     * @param simbolo
+     * @return
+     */
+    public Arco getEnlaceSimboloFromHash(String simbolo) {
+        return this.enlaces.getEnlaceSimbolo(simbolo);
+    }
+
+    /**
+     * Si el automata es un AFN, devuelve los enlaces vacios asociado a este
+     * estado.
+     * @return
+     */
+    public ArrayList<Arco> getEnlacesVacios() {
+        return this.enlaces.getVacios();
+    }
+
+    public void eliminarEnlace(Arco e) {
+        this.enlaces.borrar(e);
+    }
+
+    public boolean esIsla() {
+        if (isEstadofinal()) {
+            return false;
+        }
+
+        boolean esMuerto = true;
+        for (Arco e : this.enlaces) {
+            if (e.getDestino().getId() != this.getId()) {
+                esMuerto = false;
+            }
+        }
+        return esMuerto;
+    }
+}
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package py.com.fpuna.compiladores.analizadorlexico.automata;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+
+
+public class ListaArcos extends ArrayList<Arco> {
+ 
+    
+    private int id; 
+    
+    /**
+     * Se implementa una tabla Hash interna para la lista de enlaces que 
+     * permita indexar para cada símbolo del alfabeto, el índice del array list 
+     * con el enlace asociado. <br>
+     * 
+     * Por cada nuevo enlace, se tendrá que agregar la Hash la entrada 
+     * correspondiente. Esta tabla será útil para buscar los enlaces asociados 
+     * a un símbolo cuando se requiera recorrer el Automata. 
+     * 
+     * En esta tabla solo se guardarán los índices de enlaces asociados a 
+     * símbolso no vacíos. 
+     * 
+     */
+    private HashMap<String, Integer> TablaEnlaces; 
+    private ArrayList<Arco> vacios;
+    
+    public ListaArcos(){
+        this.TablaEnlaces = new HashMap<String, Integer>();
+        this.vacios       = new ArrayList<Arco>();
+    }
+
+    /**
+     * Establecer el identificador de listado
+     * @param id Identificador del conjunto de estados.
+     */
+    public void setId(int id) {
+        this.id = id;
+    }
+    
+    
+    /**
+     * Obtener el id del conjunto de estados.
+     * @return Identificador del conjunto de estados.
+     */
+    public int getId() {
+        return this.id;
+    }
+
+    /**
+     * Obtener la lista de enlaces asociados al símbolo vacíó
+     * @return Lista de enlaces del simbolo vacío
+     */
+    public ArrayList<Arco> getVacios() {
+        return vacios;
+    }
+    
+    
+    /**
+     * Obtener un estado de la lista. Por convención, el index de cada estado
+     * será igual a su Id. 
+     * @param index Indice del arraylist donde está almacenado el estado a obtener.
+     * @return El estado almacenado en la posición index.
+     */
+    public Arco getEnlace(int index) {
+        return this.get(index);
+    }
+    
+    /**
+     * Devuelve un iterador para recorrer el listado de estados.
+     * @return Iterador sobre el conjunto de estados.
+     */
+    public Iterator<Arco> getIterator() {
+        return this.iterator();
+    }
+
+    /**
+     * Insertar un nuevo estado a la lista
+     * @param e Estado a insertar.
+     */
+    public void insertar(Arco e) {
+    
+        int     indexToInsert   = this.cantidad();        
+        String  simbolo         = e.getEtiqueta();
+        
+        this.add(e);
+        
+        if (e.isVacio()) {
+            this.agregarEnlaceVacio(e);
+        } else {
+            this.TablaEnlaces.put(simbolo, indexToInsert);
+        }
+    }
+    
+    /**
+     * Insertar un nuevo estado a la lista, en la posición indicada
+     * @param e Estado a insertar.
+     * @param index posicion donde se insertara el elemento
+     */
+    public void insertarAt(Arco e, int index) {
+    
+        int     indexToInsert   = index;        
+        String  simbolo         = e.getEtiqueta();
+        
+        this.add(index,e);
+        
+        if (e.isVacio()) {
+            this.agregarEnlaceVacio(e);
+        } else {
+            this.TablaEnlaces.put(simbolo, indexToInsert);
+        }
+    }
+    
+    public Arco getEnlaceSimbolo(String symbol) {
+        Integer index = this.TablaEnlaces.get(symbol);        
+        Arco result = null;
+        
+        if (index != null) {
+            result = this.get(index);
+        }
+        return result; 
+    }
+    
+    /**
+     * Método que permite añadir al final de la lista de enlaces, otra lista de 
+     * enlaces. Será útil para la implementación de los algoritmos de thompson. 
+     * 
+     * @param l
+     */
+    public void insertarListaEnlaces(ListaArcos l) {
+        Iterator <Arco> i = l.getIterator();
+        Arco current;
+        
+        while(i.hasNext()) {
+            current = i.next();            
+            this.insertar(current);
+        }
+    }
+    
+    /**
+     * Permite insertar un nuevo enlace cuya etiqueta es VACIO en la lista de 
+     * vacios
+     * @param e
+     */
+    private void agregarEnlaceVacio(Arco e) {
+        this.getVacios().add(e);
+    }
+    
+    /**
+     * Eliminar un estado del conjunto.
+     * @param e Estado a eliminar
+     */
+    public void borrar(Arco e) {
+        
+        String simbolo = e.getEtiqueta();
+        
+        this.remove(e);
+        
+        if (e.isVacio()) {
+            this.getVacios().remove(e);
+        } else {
+            TablaEnlaces.remove(simbolo);                    
+        }        
+    }
+    
+    /**
+     * Obtener la cantidad de estados de la lista
+     * @return Número de estados de la lista
+     */
+    public int cantidad() {
+        return this.size();
+    }
+    
+       
+    /**
+     * Método que permite verificar si el estado e pertenece o no 
+     * a la lista de estados.
+     * @param e Estado para el cual queremos verificar la condición de pertenencia
+     * @return True o False dependiendo de si el estado pertenece o no
+     */
+    public boolean contiene(Estado e) {        
+        if (this.contains(e)) {
+                return true;
+        }        
+        return false;
+    }
+    
+    
+    /**
+     * Método heredado reescrito para comparar dos listas de enlaces. 
+     * 
+     * Dos listas de estados son iguales si tienen la misma cantidad de elementos 
+     * y si los mismos son iguales en ambas listas. 
+     * 
+     * @param o ListaEstados con el que se comparará la lista actual.
+     * @return <ul> <li><b>0 (Cero)</b> si son  iguales                       </li>
+     *              <li><b>1 (Uno)</b> si Estado es mayor que <b>e</b>        </li>
+     *              <li><b>-1 (Menos Uno)</b> si Estado es menor que <b>e</b> </li>
+     *         </ul>.
+     */
+    public int compareTo(Object o) {
+        
+        int result = -1; 
+        
+        ListaArcos otro = (ListaArcos) o;
+        
+        // comparación de cantidad de estados
+        if (this.cantidad() == otro.cantidad()) {
+            
+            // comparación uno a uno
+            for (int i = 0; i < this.cantidad(); i++) {
+                
+                Arco a = this.getEnlace(i);
+                Arco b = otro.getEnlace(i);
+                
+                if (a.compareTo(b) != 0) {
+                    return -1;
+                }
+            }
+            
+            result = 0; //Si llego hasta aqui es xq los elementos son iguales
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Imprime en una larga cadena toda la lista de estados. 
+     * @return Un String que contiene la representación en String de
+     *         la lista de estados. 
+     */
+    public String imprimir() {
+        
+        String result = " ";
+        
+        Estado origi;
+        Estado desti;
+        String simbi;
+        Arco current;
+        
+        
+        result = result + this.getId() + " = { ";
+        
+        for (int i = 0; i < this.cantidad(); i++) {
+            
+            current = this.getEnlace(i);
+            
+            origi = current.getOrigen();
+            desti = current.getDestino();
+            simbi = current.getEtiqueta();
+            
+            if (current.isVacio()) {
+                simbi = "EMPTY";
+            }
+            
+            result = result + "("+ origi + "--|"+simbi+"|-->"+desti+ ")";
+            
+            if (!(i == (this.cantidad()-1))) {
+                result = result + ", ";
+            }
+        }
+        
+        result = result + " } ";
+        
+        return result;
+    }
+}   
+package py.com.fpuna.compiladores.analizadorlexico.automata;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Iterator;
+import py.com.fpuna.compiladores.exceptions.AutomataException;
+
+
+public class ListaEstados extends ArrayList<Estado>{
+    
+    
+    public void setId(int id) {
+        this.id = id;
+    }    
+    public int getId() {
+        return this.id;
+    }
+    
+    public void insertar(Estado e) {
+        this.add(e);
+    }
+    
+    public void borrar(Estado e) {
+        this.remove(this.getEstadoById(e.getId()));
+    }
+    
+    public Estado getEstado(int index){
+        return this.get(index);
+    }
+    
+    public Estado getEstadoById(int index) {
+        Iterator it = this.getIterator();
+        while(it.hasNext()){
+            Estado e = (Estado) it.next();
+            if(e.getId() == index){
+                return e;
+            }
+        }
+        throw new IndexOutOfBoundsException(" No existe en esta lista un Estado con id = " + index);        
+    }
+    
+    /**
+     * Obtener la cantidad de estados de la lista
+     * @return Número de estados de la lista
+     */
+    public int cantidad() {
+        return this.size();
+    }
+    
+    /**
+     * Devuelve un iterador para recorrer el listado de estados.
+     * @return Iterador sobre el conjunto de estados.
+     */
+    public Iterator <Estado> getIterator() {
+        return this.iterator();
+    }
+    
+    /**
+     * Con este método, se vuelven a marcar todos los estados de la lista
+     * como no visitados. 
+     */
+    public void resetVisitas() {
+        for (int i = 0; i < cantidad(); i++) {
+            getEstado(i).setVisitado(false);
+        }
+    }
+
+    /**
+     * Método que permite verificar si el estado e pertenece o no 
+     * a la lista de estados.
+     * @param e Estado para el cual queremos verificar la condición de pertenencia
+     * @return True o False dependiendo de si el estado pertenece o no
+     */
+    public boolean contiene(Estado e) {        
+        if (this.contains(e)) {
+                return true;
+        }        
+        return false;
+    }
+    
+    public Estado getEstadoInicial() throws AutomataException{
+        int indice_ini = 0;
+        int cant_iniciales = 0;
+        for (int i = 0; i < cantidad(); i++) {
+            if(getEstado(i).isEstadoinicial()){
+                indice_ini = i;
+                cant_iniciales++;
+            }
+        }
+        if(cant_iniciales == 1){
+            return getEstado(indice_ini);
+        }else{
+            throw new AutomataException("Solo debe haber un estado incial, y en esta lista existen "+ cant_iniciales);
+        }
+    }
+    
+    public Estado getEstadoFinal() throws AutomataException{
+        int indice_fin = 0;
+        int cant_finales = 0;
+        for (int i = 0; i < cantidad(); i++) {
+            if(getEstado(i).isEstadofinal()){
+                indice_fin = i;
+                cant_finales++;
+            }
+        }
+        if(cant_finales == 1){
+            return getEstado(indice_fin);
+        }else{
+            throw new AutomataException("Este metodo se usa cuando existe un solo " +
+                    "estado final y en esta lista existen " + cant_finales + 
+                    ". Utilize el metodo getEstadosFinales");
+        }    
+    }
+
+    
+    public ListaEstados getEstadosFinales() throws AutomataException{
+        ListaEstados nuevaLista = new ListaEstados();
+        for (int i = 0; i < cantidad(); i++) {
+            if(getEstado(i).isEstadofinal()){
+                nuevaLista.insertar(getEstado(i));
+            }
+        }
+        return nuevaLista;
+    }
+    
+    public boolean contieneInicial(){
+        //verificar q contenga un estado inicial
+        Estado ini = null;
+        try{
+            ini = getEstadoInicial();
+            return true;
+        }catch (Exception ex){
+            return false;
+        }
+    }
+    
+    public boolean contieneFinal() {
+        ListaEstados fin;
+        try {
+            fin = getEstadosFinales();
+        } catch (AutomataException ex) {
+            return false;
+        }
+        
+        if(fin.cantidad() > 0){
+            return true;
+        }else{
+            return false;
+        }
+    }
+    
+    
+    /**
+     * Método para ordenar los estados de la lista
+     */
+    public void ordenar() {       
+        
+        Estado a[] = new Estado[1]; 
+        
+        a = this.toArray(a);
+        Comparator<Estado> c = null;
+                
+        Arrays.sort(a, c);
+        
+        this.removeAll(this);
+        
+        for(int i = 0; i < a.length; i++) {
+            this.add(a[i]); 
+        }
+    }
+    
+    /**
+     * Método heredado reescrito para comparar dos listas de estados. 
+     * 
+     * Dos listas de estados son iguales si tienen la misma cantidad de elementos 
+     * y si los mismos son iguales en ambas listas. 
+     * 
+     * @param o ListaEstados con el que se comparará la lista actual.
+     * @return <ul> <li><b>0 (Cero)</b> si son  iguales                       </li>
+     *              <li><b>1 (Uno)</b> si Estado es mayor que <b>e</b>        </li>
+     *              <li><b>-1 (Menos Uno)</b> si Estado es menor que <b>e</b> </li>
+     *         </ul>.
+     */
+    public int compareTo(Object o) {
+        
+        int result = -1; 
+        
+        ListaEstados otro = (ListaEstados) o;
+        
+        //Se ordenan ambas Listas
+        otro.ordenar();
+        this.ordenar();
+        
+        // comparación de cantidad de estados
+        if (this.cantidad() == otro.cantidad()) {
+            
+            // comparación uno a uno
+            for (int i = 0; i < this.cantidad(); i++) {
+                
+                Estado a = this.getEstado(i);
+                try{
+                    otro.getEstadoById(a.getId());    
+                }catch(Exception ex){
+                    return -1;
+                }
+            }
+            
+            result = 0; //Si llego hasta aqui es xq los elementos son iguales
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Imprime en una larga cadena toda la lista de estados. 
+     * @return Un String que contiene la representación en String de
+     *         la lista de estados. 
+     */
+    public String imprimir() {
+        
+        String result = " ";
+        
+        result = result + this.getId() + " = { ";
+        
+        for (int i = 0; i < this.cantidad(); i++) {
+            
+            result = result + ( this.get(i) ).getId();
+            
+            if (!(i == (this.cantidad()-1))) {
+                result = result + ", ";
+            }
+        }
+        
+        result = result + " } ";
+        
+        return result;
+    }
+
+    /**
+     * Getter for property marcado.
+     * @return Value of property marcado.
+     */
+    public boolean isMarcado() {
+        return this.marcado;
+    }
+
+    /**
+     * Setter for property marcado.
+     * @param marcado New value of property marcado.
+     */
+    public void setMarcado(boolean marcado) {
+        this.marcado = marcado;
+    }
+
+    private int id;
+    private boolean marcado;
+}
